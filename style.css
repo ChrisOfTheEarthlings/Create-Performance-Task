@@ -1,0 +1,9 @@
+body {
+	background-color: #333;
+	color: #fff;
+	font-family: Aldrich;
+}
+
+canvas {
+    cursor: none;
+}
