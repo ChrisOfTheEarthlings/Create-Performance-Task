@@ -1,10 +1,14 @@
-var canvas = document.getElementById('mainCanvas');
-var ctx = mainCanvas.getContext("2d");
+var gameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 1180;
+        this.canvas.height = 660;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[1]);
+    }
+}
 
-ctx.moveTo(0, 0);
-ctx.lineTo(1200, 600);
-ctx.stroke();
+function startGame() {
+    gameArea.start();
+}
 
-console.log('hello!');
-var x = 342652356;
-console.log(x);
