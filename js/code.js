@@ -27,10 +27,12 @@ function Component(width, height, color, x, y, type) {
 }
 
 //x is right, y is left, z is down
-function mapHex(x, y, z, terrain, buildingState) {
+function MapHex(x, y, z, terrain, buildingState) {
     this.x = x;
     this.y = y;
     this.id = ('' + x + y + z);
     this.terrain = terrain
     this.buildingState = buildingState
 }
+
+startGame();
