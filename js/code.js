@@ -1,6 +1,5 @@
 function startGame() {
     gameArea.start();
-    var myGamePiece = new Component(30, 30, "red", 10, 120);
 }
 
 var gameArea = {
@@ -16,23 +15,35 @@ var gameArea = {
     }
 }
 
-function Component(width, height, color, x, y, type) {
-    this.width = width;
-    this.height = height;
-    this.x = x;
-    this.y = y;
-    ctx = gameArea.context;
-    ctx.fillStyle = color;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+//x is right, y is left, z is down
+class MapHex {
+    constructor(x, y, z, terrain, buildingState) {
+        this.x = x;
+        this.y = y;
+        this.id = ('' + x + y + z);
+        this.terrain = terrain
+        this.buildingState = buildingState
+    }
 }
 
-//x is right, y is left, z is down
-function MapHex(x, y, z, terrain, buildingState) {
-    this.x = x;
-    this.y = y;
-    this.id = ('' + x + y + z);
-    this.terrain = terrain
-    this.buildingState = buildingState
+/*
+function generateTerrain(grid, xSize, ySize, zSize) {
+    for (var hex = 0; hex < grid.length; 
+}
+*/
+
+function buildGrid(xSize, ySize, zSize) {
+    var grid = []
+    for (var x = 1 - xSize; x < xSize; x++) {
+        for (var y = 1 - ySize; y < ySize; y++) {
+            for (var z = 1 - zSize; z < zSize; z++) {
+                if (x + y + z === 0) {
+                    grid.push(new MapHex(x, y, z, 'undefined', 'none'));
+                    console.log(grid);
+                }
+            }
+        }
+    }
 }
 
 startGame();
