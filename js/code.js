@@ -11,16 +11,74 @@ var gameArea = {
     }
 }
 
-var frame = 0;
-var radius = 50;
-var offset = 5
+var frame = 0, 
+    radius = 50,
+    offset = 5;
 
 function startGame() {
     gameArea.start();
-    var interval = setInterval(update, 10);
+    var interval = setInterval(update, 1000/60);
 }
 
-function drawHexagon(radius, hexX, hexY, screen) {
+//x is right, y is left, z is down
+class MapHex {
+    constructor(x, y, z, radius, offset, terrain, buildingState) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.radius = radius;
+        this.offset = offset;
+
+        this.borderRad = radius + offset*2;
+        this.hexX = (x - y) * (Math.sqrt(3) / 2) * (radius + offset);
+        this.hexY = (3/2) * z * (radius + offset);
+
+        this.terrain = terrain || 'default';
+        this.buildingState = buildingState || 'undeveloped';
+        this.selected = false;
+    }
+}
+
+function buildGrid(xSize, ySize, zSize, radius, offset) {
+    var grid = []
+    for (var x = 1 - xSize; x < xSize; x++) {
+        for (var y = 1 - ySize; y < ySize; y++) {
+            for (var z = 1 - zSize; z < zSize; z++) {
+                if (x + y + z === 0) {
+                    var randomNum = Math.random();
+                    if (randomNum < .4) {
+                        grid.push(new MapHex(x, y, z, radius, offset, 'water'));
+                    }
+                    else if (randomNum < .7) {
+                        grid.push(new MapHex(x, y, z, radius, offset, 'grassland'));
+                    }
+                    else if (randomNum < .75) {
+                        grid.push(new MapHex(x, y, z, radius, offset, 'cornfield'));
+                    }
+                    else if (randomNum < .9) {
+                        grid.push(new MapHex(x, y, z, radius, offset, 'forest'));
+                    }
+                    else {
+                        grid.push(new MapHex(x, y, z, radius, offset, 'mountain'));
+                    }
+                }
+            }
+        }
+    }
+    console.log(grid);
+    return grid;
+}
+
+function drawHexagon(zeroX, zeroY, hex, screen, border) {
+    var hexX = zeroX - hex.hexX,
+        hexY = zeroY - hex.hexY;
+    if (border) {
+        radius = hex.borderRad;
+    }
+    else {
+        radius = hex.radius;
+    }
+
     screen.ctx.beginPath();
     screen.ctx.moveTo(hexX, hexY + radius); //bottom middle
     screen.ctx.lineTo(hexX + (Math.sqrt(3) / 2) * radius, hexY + radius / 2); //bottom right
@@ -33,64 +91,10 @@ function drawHexagon(radius, hexX, hexY, screen) {
     screen.ctx.fill();
 }
 
-//x is right, y is left, z is down
-class MapHex {
-    constructor(x, y, z, radius, terrain, buildingState) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.radius = radius;
-        this.terrain = terrain || 'default';
-        this.buildingState = buildingState || 'undeveloped';
-        this.selected = false;
-    }
-}
-
-
-function buildGrid(xSize, ySize, zSize, radius) {
-    var grid = []
-    for (var x = 1 - xSize; x < xSize; x++) {
-        for (var y = 1 - ySize; y < ySize; y++) {
-            for (var z = 1 - zSize; z < zSize; z++) {
-                if (x + y + z === 0) {
-                    var randomNum = Math.random();
-                    if (randomNum < .4) {
-                        grid.push(new MapHex(x, y, z, radius, 'water'));
-                    }
-                    else if (randomNum < .7) {
-                        grid.push(new MapHex(x, y, z, radius, 'grassland'));
-                    }
-                    else if (randomNum < .75) {
-                        grid.push(new MapHex(x, y, z, radius, 'cornfield'));
-                    }
-                    else if (randomNum < .9) {
-                        grid.push(new MapHex(x, y, z, radius, 'forest'));
-                    }
-                    else {
-                        grid.push(new MapHex(x, y, z, radius, 'mountain'));
-                    }
-                }
-            }
-        }
-    }
-
-    console.log(grid);
-    return grid;
-}
-
-function drawHex(zeroX, zeroY, radius, offset) {
-
-}
-
-
 function drawGrid(screen, grid, offset, zeroX, zeroY) {
     for (i = 0; i < grid.length; i++) {
+        
         var hex = grid[i];
-        var radius = hex.radius;
-        var borderRad = radius + offset * 2;
-
-        var hexX = (zeroX) - ((hex.x - hex.y) * (Math.sqrt(3) / 2) * (radius + offset));
-        var hexY = (zeroY) - ((3/2) * hex.z * (radius + offset));
 
         if (hex.selected === true) {
             console.log(hex.terrain);
@@ -99,7 +103,7 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
         if (hex.terrain !== 'water') {
             screen.ctx.fillStyle = '#303030'
 
-            drawHexagon(borderRad, hexX, hexY, gameArea);
+            drawHexagon(zeroX, zeroY, hex, gameArea, true);
     
             switch (hex.terrain) {
                 case 'mountain': screen.ctx.fillStyle = '#505058';
@@ -113,12 +117,12 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
                 default: screen.ctx.fillStyle = '#707070';
             }
     
-            drawHexagon(radius, hexX, hexY, gameArea);
+            drawHexagon(zeroX, zeroY, hex, gameArea, false);
         }
 
         if (hex.selected) {
             screen.ctx.fillStyle = '#ffffff20';
-            drawHexagon(radius, hexX, hexY, gameArea);
+            drawHexagon(zeroX, zeroY, hex, gameArea, false);
         }
     }
 }
@@ -130,8 +134,23 @@ function drawCursor(screen) {
 }
 
 function drawSideboard(screen) {
+    var leftEdge = gameArea.canvas.width * (2/3);
+
     screen.ctx.fillStyle = '#404040';
-    screen.ctx.fillRect(gameArea.canvas.width * (2 / 3), 0, gameArea.canvas.width, gameArea.canvas.height);
+    screen.ctx.fillRect(leftEdge, 0, gameArea.canvas.width, gameArea.canvas.height);
+    screen.ctx.fillStyle = '#ffffff';
+    screen.ctx.font = '30px Ubuntu'
+    screen.ctx.fillText('Terrain: ' + findSelectedHex(gameGrid).terrain, leftEdge + 10, 30);
+    screen.ctx.fillText('Buildings: ' + findSelectedHex(gameGrid).buildingState, leftEdge + 10, 70)
+}
+
+function findSelectedHex(grid) {
+    for (i = 0; i < grid.length; i++) {
+        if (grid[i].selected === true) {
+            return grid[i];
+        }
+    }
+    return new MapHex(null, null, null, null, null, 'ocean', 'none');
 }
 
 function isNeighbor(grid, x1, y1, z1, x2, y2, z2) {
@@ -161,8 +180,6 @@ function selectTile(grid) {
     y = -q-r;
     z = r;
 
-    //console.log('' + x + y + z)
-
     for (i = 0; i < grid.length; i++) {
         if ((grid[i].x === x) && (grid[i].y === y) && (grid[i].z === z)) {
             grid[i].selected = true;
@@ -189,7 +206,7 @@ gameArea.canvas.addEventListener('mousemove', function(event) {
 
 startGame();
 
-var gameGrid = buildGrid(5, 5, 5, radius);
+var gameGrid = buildGrid(5, 5, 5, radius, offset);
 
 var centerX = (gameArea.canvas.width * (2 / 3)) / 2, 
     centerY = gameArea.canvas.height / 2,
