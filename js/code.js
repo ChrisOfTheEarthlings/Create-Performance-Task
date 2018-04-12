@@ -35,6 +35,7 @@ class MapHex {
 
         this.terrain = terrain || 'default';
         this.buildingState = buildingState || 'undeveloped';
+        this.owner = 'none';
         this.selected = false;
     }
 }
@@ -46,7 +47,10 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
             for (var z = 1 - zSize; z < zSize; z++) {
                 if (x + y + z === 0) {
                     var randomNum = Math.random();
-                    if (randomNum < .4) {
+                    if ((x === y) && (y === z) && (z == 0)) {
+                        grid.push(new MapHex(x, y, z, radius, offset, 'grassland'));
+                    }
+                    else if (randomNum < .4) {
                         grid.push(new MapHex(x, y, z, radius, offset, 'water'));
                     }
                     else if (randomNum < .7) {
@@ -121,7 +125,7 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
         }
 
         if (hex.selected) {
-            screen.ctx.fillStyle = '#ffffff20';
+            screen.ctx.fillStyle = '#ffffff25';
             drawHexagon(zeroX, zeroY, hex, gameArea, false);
         }
     }
@@ -134,14 +138,22 @@ function drawCursor(screen) {
 }
 
 function drawSideboard(screen) {
-    var leftEdge = gameArea.canvas.width * (2/3);
+    var leftEdge = gameArea.canvas.width * (2/3),
+        hex = findSelectedHex(gameGrid);
 
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge, 0, gameArea.canvas.width, gameArea.canvas.height);
+
+    screen.ctx.fillStyle = '#505050';
+    screen.ctx.fillRect(leftEdge + 10, 10, leftEdge/2 - 20, 50)
+
     screen.ctx.fillStyle = '#ffffff';
-    screen.ctx.font = '30px Ubuntu'
-    screen.ctx.fillText('Terrain: ' + findSelectedHex(gameGrid).terrain, leftEdge + 10, 30);
-    screen.ctx.fillText('Buildings: ' + findSelectedHex(gameGrid).buildingState, leftEdge + 10, 70)
+    screen.ctx.font = '24px Ubuntu';
+
+    screen.ctx.fillText('Terrain: ' + hex.terrain, leftEdge + 10, 90);
+    screen.ctx.fillText('Buildings: ' + hex.buildingState, leftEdge + 10, 130);
+    screen.ctx.fillText('Owner: ' + hex.owner, leftEdge + 10, 170);
+    screen.ctx.fillText('Coordinates: ' + hex.x + ' ' + hex.y + ' ' + hex.z, leftEdge + 10, 210);
 }
 
 function findSelectedHex(grid) {
@@ -150,7 +162,7 @@ function findSelectedHex(grid) {
             return grid[i];
         }
     }
-    return new MapHex(null, null, null, null, null, 'ocean', 'none');
+    return new MapHex('none', '', '', null, null, 'ocean', 'none');
 }
 
 function isNeighbor(grid, x1, y1, z1, x2, y2, z2) {
