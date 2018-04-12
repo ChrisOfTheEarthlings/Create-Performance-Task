@@ -23,10 +23,9 @@ class MapHex {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.id = ('' + x + y + z);
-        this.terrain = terrain;
-        this.buildingState = buildingState;
         this.radius = radius;
+        this.terrain = terrain || 'default';
+        this.buildingState = buildingState || 'undeveloped';
     }
 }
 
@@ -36,7 +35,9 @@ function buildGrid(xSize, ySize, zSize, radius) {
         for (var y = 1 - ySize; y < ySize; y++) {
             for (var z = 1 - zSize; z < zSize; z++) {
                 if (x + y + z === 0) {
-                    grid.push(new MapHex(x, y, z, radius, 'undefined', 'none'));
+                    if (Math.random() > .4) {
+                        grid.push(new MapHex(x, y, z, radius));
+                    }
                 }
             }
         }
@@ -88,15 +89,26 @@ function drawCursor(screen) {
     screen.ctx.fillRect(gameArea.canvas.width / 2 - 6, gameArea.canvas.height / 2 - 2, 12, 4);
 }
 
-/*
-function generateTerrain(grid, xSize, ySize, zSize) {
-    for (var hex = 0; hex < grid.length; 
+function isNeighbor(grid, x1, y1, z1, x2, y2, z2) {
+    for (i = 0; i < grid.length; i++) {
+        if (grid[i].x === x1 && grid[i].y === y1 && grid[i] === z1) {
+            for (j = 0; j < grid.length; j++) {
+                if (grid[j].x === x2 && grid[j].y === y2 && grid[j].z === z2) {
+                    return true;
+                }
+                return false;
+            }
+        }
+        else {
+            console.log('hex not found!')
+            return('hex not found')
+        }
+    }
 }
-*/
 
 var mouseDown = false;
 gameArea.canvas.addEventListener('mousedown', function(event) { mouseDown = true; });
-gameArea.canvas.addEventListener('mouseup', function(event) { mouseDown = false; });
+window.addEventListener('mouseup', function(event) { mouseDown = false; });
 
 gameArea.canvas.addEventListener('mousemove', function(event) {
     var changeX = event.movementX,
