@@ -13,9 +13,36 @@ var gameArea = {
 
 var frame = 0;
 
-
 function startGame() {
     gameArea.start();
+}
+
+//x is right, y is left, z is down
+class MapHex {
+    constructor(x, y, z, radius, terrain, buildingState) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.id = ('' + x + y + z);
+        this.terrain = terrain;
+        this.buildingState = buildingState;
+        this.radius = radius;
+    }
+}
+
+function buildGrid(xSize, ySize, zSize, radius) {
+    var grid = []
+    for (var x = 1 - xSize; x < xSize; x++) {
+        for (var y = 1 - ySize; y < ySize; y++) {
+            for (var z = 1 - zSize; z < zSize; z++) {
+                if (x + y + z === 0) {
+                    grid.push(new MapHex(x, y, z, radius, 'undefined', 'none'));
+                }
+            }
+        }
+    }
+    console.log(grid);
+    return grid;
 }
 
 function drawGrid(screen, grid, offset, zeroX, zeroY) {
@@ -55,17 +82,10 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
     }
 }
 
-//x is right, y is left, z is down
-class MapHex {
-    constructor(x, y, z, radius, terrain, buildingState) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.id = ('' + x + y + z);
-        this.terrain = terrain;
-        this.buildingState = buildingState;
-        this.radius = radius;
-    }
+function drawCursor(screen) {
+    screen.ctx.fillStyle = '#000000';
+    screen.ctx.fillRect(gameArea.canvas.width / 2 - 2, gameArea.canvas.height / 2 - 6, 4, 12);
+    screen.ctx.fillRect(gameArea.canvas.width / 2 - 6, gameArea.canvas.height / 2 - 2, 12, 4);
 }
 
 /*
@@ -74,20 +94,19 @@ function generateTerrain(grid, xSize, ySize, zSize) {
 }
 */
 
-function buildGrid(xSize, ySize, zSize, radius) {
-    var grid = []
-    for (var x = 1 - xSize; x < xSize; x++) {
-        for (var y = 1 - ySize; y < ySize; y++) {
-            for (var z = 1 - zSize; z < zSize; z++) {
-                if (x + y + z === 0) {
-                    grid.push(new MapHex(x, y, z, radius, 'undefined', 'none'));
-                }
-            }
-        }
+var mouseDown = false;
+gameArea.canvas.addEventListener('mousedown', function(event) { mouseDown = true; });
+gameArea.canvas.addEventListener('mouseup', function(event) { mouseDown = false; });
+
+gameArea.canvas.addEventListener('mousemove', function(event) {
+    var changeX = event.movementX,
+        changeY = event.movementY;
+
+    if (mouseDown) {
+        beginX += changeX;
+        beginY += changeY;
     }
-    console.log(grid);
-    return grid;
-}
+});
 
 startGame();
 var gameGrid = buildGrid(6, 6, 6, 50);
@@ -95,16 +114,11 @@ var gameGrid = buildGrid(6, 6, 6, 50);
 var beginX = gameArea.canvas.width;
 var beginY = gameArea.canvas.height;
 
-function animationTest() {
+function update() {
     frame++;
-    beginX--;
-    beginY--
     gameArea.clear();
-    if (beginX  === -gameArea.canvas.width) {
-        beginX += 2;
-        beginY += 2;
-    }
     drawGrid(gameArea, gameGrid, 5, beginX, beginY);
+    drawCursor(gameArea);
 }
 
-var interval = setInterval(animationTest, 10);
+var interval = setInterval(update, 10);
