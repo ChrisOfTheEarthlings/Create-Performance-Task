@@ -11,50 +11,48 @@ var gameArea = {
     }
 }
 
+var frame = 0;
+
+
 function startGame() {
     gameArea.start();
 }
 
-function drawHex(screen, hex, offset) {
-    var zeroX = screen.canvas.width / 2;
-    var zeroY = screen.canvas.height / 2;
-    var radius = hex.radius;
+function drawGrid(screen, grid, offset, zeroX, zeroY) {
+    for (i = 0; i < grid.length; i++) {
+        var hex = grid[i];
+        var radius = hex.radius;
+        var borderRad = radius + offset * 2;
 
-    var hexX = (zeroX) - ((hex.x - hex.y) * (Math.sqrt(3) / 2) * (radius + offset));
-    var hexY = (zeroY) - ((3/2) * hex.z * (radius + offset));
+        var hexX = (zeroX) - ((hex.x - hex.y) * (Math.sqrt(3) / 2) * (radius + offset));
+        var hexY = (zeroY) - ((3/2) * hex.z * (radius + offset));
 
-    screen.ctx.fillRect(hexX - 2, hexY - 2, 4, 4);
-    screen.ctx.beginPath();
-    screen.ctx.moveTo(
-        hexX, 
-        hexY + radius
-    );
-    screen.ctx.lineTo(
-        hexX + (Math.sqrt(3) / 2) * radius, 
-        hexY + radius / 2
-    );
-    screen.ctx.lineTo(
-        hexX + (Math.sqrt(3) / 2) * radius,
-        hexY - radius / 2
-    );
-    screen.ctx.lineTo(
-        hexX,
-        hexY - radius
-    );
-    screen.ctx.lineTo(
-        hexX - (Math.sqrt(3) / 2) * radius,
-        hexY - radius / 2
-    );
-    screen.ctx.lineTo(
-        hexX - (Math.sqrt(3) / 2) * radius,
-        hexY + radius / 2
-    );
-    screen.ctx.lineTo(
-        hexX,
-        hexY + radius
-    );
-    screen.ctx.closePath();
-    screen.ctx.fill();
+        screen.ctx.fillStyle = '#606060'
+
+        screen.ctx.beginPath();
+        screen.ctx.moveTo(hexX, hexY + borderRad); //bottom middle
+        screen.ctx.lineTo(hexX + (Math.sqrt(3) / 2) * borderRad, hexY + borderRad / 2); //bottom right
+        screen.ctx.lineTo(hexX + (Math.sqrt(3) / 2) * borderRad, hexY - borderRad / 2); //top right
+        screen.ctx.lineTo(hexX, hexY - borderRad); //top middle
+        screen.ctx.lineTo(hexX - (Math.sqrt(3) / 2) * borderRad, hexY - borderRad / 2); //top left
+        screen.ctx.lineTo(hexX - (Math.sqrt(3) / 2) * borderRad, hexY + borderRad / 2); //bottom left
+        screen.ctx.lineTo(hexX, hexY + borderRad); //bottom middle
+        screen.ctx.closePath();
+        screen.ctx.fill();
+
+        screen.ctx.fillStyle = '#608038';
+
+        screen.ctx.beginPath();
+        screen.ctx.moveTo(hexX, hexY + radius); //bottom middle
+        screen.ctx.lineTo(hexX + (Math.sqrt(3) / 2) * radius, hexY + radius / 2); //bottom right
+        screen.ctx.lineTo(hexX + (Math.sqrt(3) / 2) * radius, hexY - radius / 2); //top right
+        screen.ctx.lineTo(hexX, hexY - radius); //top middle
+        screen.ctx.lineTo(hexX - (Math.sqrt(3) / 2) * radius, hexY - radius / 2); //top left
+        screen.ctx.lineTo(hexX - (Math.sqrt(3) / 2) * radius, hexY + radius / 2); //bottom left
+        screen.ctx.lineTo(hexX, hexY + radius); //bottom middle
+        screen.ctx.closePath();
+        screen.ctx.fill();
+    }
 }
 
 //x is right, y is left, z is down
@@ -94,6 +92,19 @@ function buildGrid(xSize, ySize, zSize, radius) {
 startGame();
 var gameGrid = buildGrid(6, 6, 6, 50);
 
-for (i = 0; i < gameGrid.length; i++) {
-    drawHex(gameArea, gameGrid[i], 5);
+var beginX = gameArea.canvas.width;
+var beginY = gameArea.canvas.height;
+
+function animationTest() {
+    frame++;
+    beginX--;
+    beginY--
+    gameArea.clear();
+    if (beginX  === -gameArea.canvas.width) {
+        beginX += 2;
+        beginY += 2;
+    }
+    drawGrid(gameArea, gameGrid, 5, beginX, beginY);
 }
+
+var interval = setInterval(animationTest, 10);

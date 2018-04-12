@@ -6,7 +6,8 @@ body {
 
 canvas {
 	border: 1px solid #000;
-	background-color: #999;
+	background-color: #23C;
+	cursor: none;
 }
 
 h1 {
