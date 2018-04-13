@@ -49,7 +49,9 @@ class MapHex {
         this.hexY = (3/2) * z * (radius + offset);
 
         this.terrain = terrain || 'default';
-        this.buildingState = buildingState || 'undeveloped';
+        this.buildingState = buildingState || 0;
+        this.buildings = [];
+        this.buildingOptions = getBuildingOptions(this.terrain, this.buildings);
         this.owner = 'none';
         this.selected = false;
     }
@@ -63,7 +65,7 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
                 if (x + y + z === 0) {
                     var randomNum = Math.random();
                     if ((x === y) && (y === z) && (z == 0)) {
-                        grid.push(new MapHex(x, y, z, radius, offset, 'grassland'));
+                        grid.push(new MapHex(x, y, z, radius, offset, 'home'));
                     }
                     else if (randomNum < .4) {
                         grid.push(new MapHex(x, y, z, radius, offset, 'water'));
@@ -88,7 +90,7 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
     return grid;
 }
 
-function drawHexagon(zeroX, zeroY, hex, screen, border, building) {
+function drawHexagon(zeroX, zeroY, hex, screen, border) {
     var hexX = zeroX - hex.hexX,
         hexY = zeroY - hex.hexY;
     if (border) {
@@ -108,6 +110,7 @@ function drawHexagon(zeroX, zeroY, hex, screen, border, building) {
     screen.ctx.lineTo(hexX, hexY + radius); //bottom middle
     screen.ctx.closePath();
     screen.ctx.fill();
+
 }
 
 function drawGrid(screen, grid, offset, zeroX, zeroY) {
@@ -125,15 +128,24 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
             drawHexagon(zeroX, zeroY, hex, gameArea, true);
     
             switch (hex.terrain) {
-                case 'mountain': screen.ctx.fillStyle = '#505058';
-                break;
-                case 'cornfield': screen.ctx.fillStyle = '#808008';
-                break;
-                case 'forest': screen.ctx.fillStyle = '#306018';
-                break;
-                case 'grassland': screen.ctx.fillStyle = '#608038';
-                break;
-                default: screen.ctx.fillStyle = '#707070';
+                case 'mountain': 
+                    screen.ctx.fillStyle = '#505058';
+                    break;
+                case 'cornfield': 
+                    screen.ctx.fillStyle = '#808008';
+                    break;
+                case 'forest': 
+                    screen.ctx.fillStyle = '#306018';
+                    break;
+                case 'grassland': 
+                    screen.ctx.fillStyle = '#608038';
+                    break;
+                case 'home': 
+                    screen.ctx.fillStyle = '#906060';
+                    break;
+                default: 
+                    screen.ctx.fillStyle = '#000000';
+                    break;
             }
     
             drawHexagon(zeroX, zeroY, hex, gameArea, false);
@@ -156,9 +168,11 @@ function drawSideboard(screen) {
     var leftEdge = gameArea.canvas.width * (2/3),
         hex = findSelectedHex(gameGrid);
 
+    //main sideboard pane
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge, 0, gameArea.canvas.width, gameArea.canvas.height);
 
+    //draw resource pane
     screen.ctx.fillStyle = '#505050';
     screen.ctx.fillRect(leftEdge + 10, 10, leftEdge/2 - 20, 50)
 
@@ -174,9 +188,36 @@ function drawSideboard(screen) {
     screen.ctx.drawImage(icons[3], leftEdge + 267, 20);
     screen.ctx.fillText(': ' + playerResources.iron, leftEdge + 300, 45);
 
+    //draw terrain and building status indicators
     screen.ctx.fillText('Terrain: ' + hex.terrain, leftEdge + 10, 90);
-    screen.ctx.fillText('Buildings: ' + hex.buildingState, leftEdge + 10, 130);
-    screen.ctx.fillText('Coordinates: ' + hex.x + ' ' + hex.y + ' ' + hex.z, leftEdge + 10, 170);
+    screen.ctx.fillText('Building Status: ' + hex.buildingState + '%', leftEdge + 10, 130);
+
+    //draw building pane
+    screen.ctx.fillStyle = '#505050';
+    screen.ctx.fillRect(leftEdge + 10, 140, leftEdge/2 - 20, gameArea.canvas.height - 200);
+
+    screen.ctx.fillStyle = '#404040';
+    if (hex.buildingState > 33) {
+        screen.ctx.fillStyle = '#303030';
+    }
+    screen.ctx.fillRect(leftEdge + 20, 150, leftEdge/2 - 40, 100);
+    screen.ctx.fillStyle = '#404040';
+    if (hex.buildingState > 66) {
+        screen.ctx.fillStyle = '#303030';
+    }
+    screen.ctx.fillRect(leftEdge + 20, 260, leftEdge/2 - 40, 100);
+    screen.ctx.fillStyle = '#404040';
+    if (hex.buildingState > 99) {
+        screen.ctx.fillStyle = '#303030';
+    }
+    screen.ctx.fillRect(leftEdge + 20, 370, leftEdge/2 - 40, 100);
+
+    //draw 'build' button
+    screen.ctx.fillStyle = '#505050';
+    screen.ctx.fillRect(leftEdge + 60, 490, leftEdge/2 - 120, 40);
+
+    screen.ctx.fillStyle = '#ffffff';
+    screen.ctx.fillText('build', leftEdge + 151, 520);
 }
 
 function findSelectedHex(grid) {
@@ -185,7 +226,7 @@ function findSelectedHex(grid) {
             return grid[i];
         }
     }
-    return new MapHex('none', '', '', null, null, 'ocean', 'none');
+    return new MapHex('none', '', '', null, null, 'ocean', 0);
 }
 
 function isNeighbor(grid, x1, y1, z1, x2, y2, z2) {
@@ -225,6 +266,125 @@ function selectTile(grid) {
     }
 }
 
+class Building {
+    constructor(type) {
+        this.type = type || 'generic';
+
+        switch (type) {
+            case 'road': 
+                this.cost = [0, 5, 5, 0];
+                this.yeild = [0, 0, 0, 0]; //Yield per second
+                this.flavorText = 'A road, must be built but produces no resources.';
+                break;
+            case 'bridge': 
+                this.cost = [0, 5, 5, 0];
+                this.yeild = [0, 0, 0, 0]; //Yield per second
+                this.flavorText = 'A bridge for crossing water.';
+                break;
+            case 'settlement':
+                this.cost = [0, 20, 10, 5];
+                this.yeild = [.25, .05, -.25, .05];
+                this.flavorText = 'A settlement, build to increase Population';
+                break;
+            case 'settlement +':
+                this.cost = [20, 20, 10, 40];
+                this.yeild = [.75, .05, -.25, .05];
+                this.flavorText = 'An additional settlement, build to quadruple Population increase';
+                break;
+            case 'mine':
+                this.cost = [10, 30, 0, 10];
+                this.yeild = [0, 0, -.25, .25];
+                this.flavorText = 'A mine, build to produce Iron';
+                break;
+            case 'mine +':
+                this.cost = [20, 40, 0, 20];
+                this.yeild = [0, 0, -.25, .75];
+                this.flavorText = 'An additional mine, build to quadruple Iron production';
+                break;
+            case 'farm':
+                this.cost = [10, 20, 5, 15];
+                this.yeild = [-.25, 0, 1, 0];
+                this.flavorText = 'A farm, build to produce Corn';
+                break;
+            case 'farm +':
+                this.cost = [20, 30, 5, 25];
+                this.yeild = [-.25, 0, 3, 0];
+                this.flavorText = 'An additional farm, build to quadruple Corn production';
+                break;
+            case 'wood cutter':
+                this.cost = [10, 10, 0 , 30];
+                this.yeild = [0, .25, -.25, 0];
+                this.flavorText = 'A wood cutter, build to produce Lumber';
+                break;
+            case 'wood cutter +':
+                this.cost = [20, 20, 0, 40];
+                this.yeild = [0, .75, -.75, 0];
+                this.flavorText = 'An additional wood cutter, build to quadruple Lumber production';
+                break;
+            case 'castle lv. 1':
+                this.cost = [5, 5, 5, 5];
+                this.yeild = [.25, .25, .25, .25];
+                this.flavorText = 'A level 1 castle. Achieve level 3 to win';
+                break;
+            case 'castle lv. 2':
+                this.cost = [20, 20, 20, 20];
+                this.yeild = [.75, .75, .75, .75];
+                this.flavorText = 'A level 2 castle. Achieve level 3 to win';
+                break;
+            case 'castle lv. 3':
+                this.cost = [99, 99, 99, 99];
+                this.yeild = [3, 3, 3, 3];
+                this.flavorText = 'A level 3 castle. If this is built you win!';
+                break;
+            default:
+                this.cost = [100, 100, 100, 100];
+                this.yeild = [0, 0, 0, 0];
+                this.flavorText = 'Unidentified';
+                break;
+        }
+    }
+}
+
+function getBuildingOptions(terrain, buildings) {
+    var options = [];
+
+    options.push(new Building('road'))
+
+    switch (terrain) {
+        case 'home': 
+            options.shift();
+            options.push(new Building('castle lv. 1'));
+            options.push(new Building('castle lv. 2'));
+            options.push(new Building('castle lv. 3'));
+            break;
+        case 'grassland':
+            options.push(new Building('settlement'));
+            options.push(new Building('settlement +'));
+            break;
+        case 'mountain':
+            options.push(new Building('mine'));
+            options.push(new Building('mine +'));
+            break;
+        case 'cornfield':
+            options.push(new Building('farm'));
+            options.push(new Building('farm +'));
+            break;
+        case 'forest':
+            options.push(new Building('wood cutter'));
+            options.push(new Building('wood cutter +'));
+            break;
+        case 'water':
+            options.shift();
+            options.push(new Building('bridge'));
+            break;
+        default:
+            return [];
+    }
+
+    return options;
+}
+
+
 var mouseDown = false;
 gameArea.canvas.addEventListener('mousedown', function(event) { mouseDown = true; });
 window.addEventListener('mouseup', function(event) { mouseDown = false; });
@@ -255,4 +415,7 @@ function update() {
     drawGrid(gameArea, gameGrid, offset, gridCenterX, gridCenterY);
     drawCursor(gameArea);
     drawSideboard(gameArea);
+    //if (((frame / 15)%1 === 0) && (findSelectedHex(gameGrid).buildingState < 100)) {
+    //    findSelectedHex(gameGrid).buildingState++;
+    //}
 }
