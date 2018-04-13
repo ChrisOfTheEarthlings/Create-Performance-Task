@@ -14,6 +14,21 @@ var gameArea = {
 var frame = 0, 
     radius = 50,
     offset = 5;
+    icons = [new Image(), new Image(), new Image(), new Image()];
+
+icons[0].src = 'assets/icons/people.png';
+icons[1].src = 'assets/icons/lumber.png';
+icons[2].src = 'assets/icons/corn.png';
+icons[3].src = 'assets/icons/iron.png';
+
+var playerResources = {
+    people: 10,
+    lumber: 10,
+    corn: 10,
+    iron: 10
+};
+
+
 
 function startGame() {
     gameArea.start();
@@ -73,7 +88,7 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
     return grid;
 }
 
-function drawHexagon(zeroX, zeroY, hex, screen, border) {
+function drawHexagon(zeroX, zeroY, hex, screen, border, building) {
     var hexX = zeroX - hex.hexX,
         hexY = zeroY - hex.hexY;
     if (border) {
@@ -150,10 +165,18 @@ function drawSideboard(screen) {
     screen.ctx.fillStyle = '#ffffff';
     screen.ctx.font = '24px Ubuntu';
 
+    screen.ctx.drawImage(icons[0], leftEdge + 15, 20);
+    screen.ctx.fillText(': ' + playerResources.people, leftEdge + 45, 45);
+    screen.ctx.drawImage(icons[1], leftEdge + 100, 20);
+    screen.ctx.fillText(': ' + playerResources.lumber, leftEdge + 130, 45);
+    screen.ctx.drawImage(icons[2], leftEdge + 185, 20);
+    screen.ctx.fillText(': ' + playerResources.corn, leftEdge + 215, 45);
+    screen.ctx.drawImage(icons[3], leftEdge + 267, 20);
+    screen.ctx.fillText(': ' + playerResources.iron, leftEdge + 300, 45);
+
     screen.ctx.fillText('Terrain: ' + hex.terrain, leftEdge + 10, 90);
     screen.ctx.fillText('Buildings: ' + hex.buildingState, leftEdge + 10, 130);
-    screen.ctx.fillText('Owner: ' + hex.owner, leftEdge + 10, 170);
-    screen.ctx.fillText('Coordinates: ' + hex.x + ' ' + hex.y + ' ' + hex.z, leftEdge + 10, 210);
+    screen.ctx.fillText('Coordinates: ' + hex.x + ' ' + hex.y + ' ' + hex.z, leftEdge + 10, 170);
 }
 
 function findSelectedHex(grid) {
