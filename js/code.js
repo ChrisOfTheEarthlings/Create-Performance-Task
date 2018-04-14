@@ -52,12 +52,15 @@ class MapHex {
     }
 }
 
-MapHex.prototype.startBuild = function() {
+MapHex.prototype.startBuild = function(resources) {
     if (this.nextBuilding === 4) {
         this.nextBuilding = 3;
     }
     if (compareArrays(playerResources, this.buildingOptions[this.nextBuilding].cost)) {
         this.isBuilding = 1;
+        for (i = 0; i < resources.length; i++) {
+            resources[i] -= this.buildingOptions[this.nextBuilding].cost[i];
+        }
     }
 }
 
@@ -387,7 +390,7 @@ class Building {
                 this.flavorText = 'A level 2 castle. Achieve level 3 to win';
                 break;
             case 'castle lv. 3':
-                this.cost = [99, 99, 99, 99];
+                this.cost = [90, 90, 90, 90];
                 this.yeild = [3, 3, 3, 3];
                 this.flavorText = 'A level 3 castle. If this is built you win!';
                 break;
@@ -452,13 +455,45 @@ function getBuildingOptions(terrain) {
     return options;
 }
 
+function build(grid) {
+    for (i = 0; i < grid.length; i++) {
+        if (grid[i].isBuilding === 1) {
+            if (grid[i].buildingState < 100) {
+                grid[i].buildingState++;
+            }
+            else {
+                grid[i].buildingState = 0;
+                grid[i].buildings.push(grid[i].buildingOptions[grid[i].nextBuilding]);
+                grid[i].nextBuilding++;
+                grid[i].isBuilding = 0;
+            }
+        }
+    }
+}
+
+function updateResources(grid, resources) {
+    for (i = 0; i < grid.length; i++) {
+        var hex = grid[i];
+        for (j = 0; j < hex.buildings.length; j++) {
+            for (k = 0; k < 4; k++) {
+                if (((frame * hex.buildings[j].yeild[k] / 60) % 1 === 0) && (hex.buildings[j].yeild[k] !== 0)) {
+                    resources[k]++;
+                    if (resources[k] > 100) {
+                        resources[k] = 100;
+                    }
+                }
+            }
+        }
+    }
+}
+
 var mouseDown = false;
 gameArea.canvas.addEventListener('mousedown', function(event) { 
     mouseDown = true;
     if ((event.offsetX > 720 + 60) && (event.offsetX < 1080 - 60)) {
         if ((event.offsetY > 490) && (event.offsetY < 530)) {
             console.log([event.offsetX, event.offsetY]);
-            findSelectedHex(gameGrid).startBuild();
+            findSelectedHex(gameGrid).startBuild(playerResources);
         }
     }
 });
@@ -491,17 +526,6 @@ function update() {
     drawGrid(gameArea, gameGrid, offset, gridCenterX, gridCenterY);
     drawCursor(gameArea);
     drawSideboard(gameArea);
-    for (i = 0; i < gameGrid.length; i++) {
-        if (gameGrid[i].isBuilding === 1) {
-            if (gameGrid[i].buildingState < 100) {
-                gameGrid[i].buildingState++;
-            }
-            else {
-                gameGrid[i].buildingState = 0;
-                gameGrid[i].buildings.push(gameGrid[i].buildingOptions[gameGrid[i].nextBuilding]);
-                gameGrid[i].nextBuilding++;
-                gameGrid[i].isBuilding = 0;
-            }
-        }
-    }
+    build(gameGrid);
+    updateResources(gameGrid, playerResources);
 }
