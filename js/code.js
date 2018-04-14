@@ -469,6 +469,7 @@ function numberOfBuildings(grid) {
 function maxResources(numBuildings) {
     var maxResources = 20;
     maxResources += Math.floor(numBuildings * 5);
+    return maxResources;
 }
 
 function build(grid) {
