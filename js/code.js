@@ -21,7 +21,7 @@ icons[1].src = 'assets/icons/lumber.png';
 icons[2].src = 'assets/icons/corn.png';
 icons[3].src = 'assets/icons/iron.png';
 
-var playerResources = [50, 50, 50, 50];
+var playerResources = [5, 5, 5, 5];
 
 function startGame() {
     gameArea.start();
@@ -73,7 +73,7 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
                 if (x + y + z === 0) {
                     var randomNum = Math.random();
                     if ((x === y) && (y === z) && (z == 0)) {
-                        grid.push(new MapHex(x, y, z, radius, offset, 'home'));
+                        grid.push(new MapHex(x, y, z, radius, offset, 'home', [new Building('castle lv. 1')]));
                     }
                     else if (randomNum < .4) {
                         grid.push(new MapHex(x, y, z, radius, offset, 'water'));
@@ -300,6 +300,20 @@ function isNeighbor(grid, x1, y1, z1, x2, y2, z2) {
         else {
             console.log('hex not found!')
             return('hex not found')
+        }
+    }
+}
+
+function neighborsHaveBuildings(grid, hex) {
+    var directions = [[1, -1, 0], [1, 0, -1], [0, 1, -1], [0, -1, 1] [-1, 0, 1], [-1, 1, 0]];
+    for (i = 0; i < grid.length; i++) {
+        for (j = 0; j < directions.length; j++) {
+            if ((hex.x - grid[i].x === directions[j][0]) && (hex.y - grid[i].y === directions[j][1]) && (hex.z - grid[i].z === directions[j][2])) {
+                if (grid[i].buildings.length !== 0) {
+                    return true;
+                }
+                return false;
+            }
         }
     }
 }
