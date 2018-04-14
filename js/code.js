@@ -383,12 +383,12 @@ class Building {
                 break;
             case 'castle lv. 1':
                 this.cost = [5, 5, 5, 5];
-                this.yeild = [.25, .25, .25, .25];
+                this.yeild = [.5, .5, .5, .5];
                 this.flavorText = 'A level 1 castle. Achieve level 3 to win';
                 break;
             case 'castle lv. 2':
                 this.cost = [20, 20, 20, 20];
-                this.yeild = [.75, .75, .75, .75];
+                this.yeild = [.5, .5, .5, .5];
                 this.flavorText = 'A level 2 castle. Achieve level 3 to win';
                 break;
             case 'castle lv. 3':
@@ -468,7 +468,10 @@ function numberOfBuildings(grid) {
 
 function maxResources(numBuildings) {
     var maxResources = 20;
-    maxResources += Math.floor(numBuildings * 5);
+    maxResources += Math.floor(numBuildings * 2);
+    if (maxResources > 99) {
+        maxResources = 100;
+    }
     return maxResources;
 }
 
