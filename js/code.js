@@ -129,7 +129,6 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
         var hex = grid[i];
 
         if (hex.selected === true) {
-            console.log(hex.terrain);
         }
 
         if (hex.terrain !== 'water') {
@@ -289,23 +288,6 @@ function findSelectedHex(grid) {
     return new MapHex('none', '', '', null, null, 'ocean', 0);
 }
 
-function isNeighbor(grid, x1, y1, z1, x2, y2, z2) {
-    for (i = 0; i < grid.length; i++) {
-        if ((grid[i].x === x1) && (grid[i].y === y1) && (grid[i] === z1)) {
-            for (j = 0; j < grid.length; j++) {
-                if ((grid[j].x === x2) && (grid[j].y === y2) && (grid[j].z === z2)) {
-                    return true;
-                }
-                return false;
-            }
-        }
-        else {
-            console.log('hex not found!')
-            return('hex not found')
-        }
-    }
-}
-
 function neighborsHaveBuildings(grid, hex) {
     var directions = [[1, -1, 0], [1, 0, -1], [0, 1, -1], [0, -1, 1] [-1, 0, 1], [-1, 1, 0]];
     for (i = 0; i < grid.length; i++) {
@@ -313,12 +295,8 @@ function neighborsHaveBuildings(grid, hex) {
             if ((Math.abs(hex.x - grid[i].x) === Math.abs(directions[j][0])) && 
                 (Math.abs(hex.y - grid[i].y) === Math.abs(directions[j][1])) && 
                 (Math.abs(hex.z - grid[i].z) === Math.abs(directions[j][2]))) {  
-
-                console.log([grid[i].x, grid[i].y, grid[i].z]); 
                 
                 if (grid[i].buildings.length !== 0) {
-
-                    console.log([grid[i].x, grid[i].y, grid[i].z])   
                     return true;
                 }
 
@@ -479,10 +457,24 @@ function getBuildingOptions(terrain) {
     return options;
 }
 
+function numberOfBuildings(grid) {
+    var buildingNumber;
+    for (i = 0; i < grid.length; i++) {
+        var hex = grid[i];
+        buildingNumber += hex.buildings.list;
+    }
+    return buildingNumber;
+}
+
+function maxResources(numBuildings) {
+    var maxResources = 20;
+    maxResources += Math.floor(numBuildings * 5);
+}
+
 function build(grid) {
     for (i = 0; i < grid.length; i++) {
         if (grid[i].isBuilding === 1) {
-            if (grid[i].buildingState < 100) {
+            if (grid[i].buildingState < maxResources(numberOfBuildings(gameGrid))) {
                 grid[i].buildingState++;
             }
             else {
@@ -516,7 +508,6 @@ gameArea.canvas.addEventListener('mousedown', function(event) {
     mouseDown = true;
     if ((event.offsetX > 720 + 60) && (event.offsetX < 1080 - 60)) {
         if ((event.offsetY > 490) && (event.offsetY < 530)) {
-            console.log([event.offsetX, event.offsetY]);
             findSelectedHex(gameGrid).startBuild(playerResources);
         }
     }
