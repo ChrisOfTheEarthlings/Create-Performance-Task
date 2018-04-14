@@ -474,7 +474,7 @@ function maxResources(numBuildings) {
 function build(grid) {
     for (i = 0; i < grid.length; i++) {
         if (grid[i].isBuilding === 1) {
-            if (grid[i].buildingState < maxResources(numberOfBuildings(gameGrid))) {
+            if (grid[i].buildingState < 100) {
                 grid[i].buildingState++;
             }
             else {
@@ -494,8 +494,8 @@ function updateResources(grid, resources) {
             for (k = 0; k < 4; k++) {
                 if (((frame * hex.buildings[j].yeild[k] / 60) % 1 === 0) && (hex.buildings[j].yeild[k] !== 0)) {
                     resources[k]++;
-                    if (resources[k] > 100) {
-                        resources[k] = 100;
+                    if (resources[k] > maxResources(numberOfBuildings(gameGrid))) {
+                        resources[k] = maxResources(numberOfBuildings(gameGrid));
                     }
                 }
             }
