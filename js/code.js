@@ -56,7 +56,9 @@ MapHex.prototype.startBuild = function(resources) {
     if (this.nextBuilding === 4) {
         this.nextBuilding = 3;
     }
-    if (compareArrays(playerResources, this.buildingOptions[this.nextBuilding].cost)) {
+    if (compareArrays(playerResources, this.buildingOptions[this.nextBuilding].cost) && 
+        (neighborsHaveBuildings(gameGrid, this))) {
+
         this.isBuilding = 1;
         for (i = 0; i < resources.length; i++) {
             resources[i] -= this.buildingOptions[this.nextBuilding].cost[i];
@@ -213,14 +215,14 @@ function drawSideboard(screen) {
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 150, leftEdge/2 - 40, 100);
     if (hex.terrain !== 'ocean') {        
-        if (!compareArrays(playerResources, hex.buildingOptions[0].cost)) {
-            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#802020');
-            screen.ctx.fillStyle = '#802020';
-            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
-        }
-        else if (hex.buildings.length >= 1) {
+        if (hex.buildings.length >= 1) {
             drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#000000');
             screen.ctx.fillStyle = '#000000';
+            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
+        }
+        else if (!compareArrays(playerResources, hex.buildingOptions[0].cost) || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
+            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#802020');
+            screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
         else {
@@ -233,14 +235,14 @@ function drawSideboard(screen) {
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 260, leftEdge/2 - 40, 100);
     if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
-        if ((!compareArrays(playerResources, hex.buildingOptions[1].cost)) || (hex.buildings.length < 1)) {
-            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#802020');
-            screen.ctx.fillStyle = '#802020';
-            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
-        }
-        else if (hex.buildings.length >= 2) {
+        if (hex.buildings.length >= 2) {
             drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#000000');
             screen.ctx.fillStyle = '#000000';
+            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
+        }
+        else if ((!compareArrays(playerResources, hex.buildingOptions[1].cost)) || (hex.buildings.length < 1) || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#802020');
+            screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
         else {
@@ -253,14 +255,14 @@ function drawSideboard(screen) {
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 370, leftEdge/2 - 40, 100);
     if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
-        if ((!compareArrays(playerResources, hex.buildingOptions[2].cost)) || (hex.buildings.length < 2)) {
-            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#802020');
-            screen.ctx.fillStyle = '#802020';
-            screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
-        }
-        else if (hex.buildings.length >= 3) {
+        if (hex.buildings.length >= 3) {
             drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#000000');
             screen.ctx.fillStyle = '#000000';
+            screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
+        }
+        else if ((!compareArrays(playerResources, hex.buildingOptions[2].cost)) || (hex.buildings.length < 2) || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
+            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#802020');
+            screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
         }
         else {
@@ -308,14 +310,22 @@ function neighborsHaveBuildings(grid, hex) {
     var directions = [[1, -1, 0], [1, 0, -1], [0, 1, -1], [0, -1, 1] [-1, 0, 1], [-1, 1, 0]];
     for (i = 0; i < grid.length; i++) {
         for (j = 0; j < directions.length; j++) {
-            if ((hex.x - grid[i].x === directions[j][0]) && (hex.y - grid[i].y === directions[j][1]) && (hex.z - grid[i].z === directions[j][2])) {
+            if ((Math.abs(hex.x - grid[i].x) === Math.abs(directions[j][0])) && 
+                (Math.abs(hex.y - grid[i].y) === Math.abs(directions[j][1])) && 
+                (Math.abs(hex.z - grid[i].z) === Math.abs(directions[j][2]))) {  
+
+                console.log([grid[i].x, grid[i].y, grid[i].z]); 
+                
                 if (grid[i].buildings.length !== 0) {
+
+                    console.log([grid[i].x, grid[i].y, grid[i].z])   
                     return true;
                 }
-                return false;
+
             }
         }
     }
+    return false;
 }
 
 function selectTile(grid) {
