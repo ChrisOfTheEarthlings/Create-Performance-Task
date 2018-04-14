@@ -458,10 +458,10 @@ function getBuildingOptions(terrain) {
 }
 
 function numberOfBuildings(grid) {
-    var buildingNumber;
+    var buildingNumber = 0;
     for (i = 0; i < grid.length; i++) {
         var hex = grid[i];
-        buildingNumber += hex.buildings.list;
+        buildingNumber += hex.buildings.length;
     }
     return buildingNumber;
 }
