@@ -21,14 +21,7 @@ icons[1].src = 'assets/icons/lumber.png';
 icons[2].src = 'assets/icons/corn.png';
 icons[3].src = 'assets/icons/iron.png';
 
-var playerResources = {
-    people: 10,
-    lumber: 10,
-    corn: 10,
-    iron: 10
-};
-
-
+var playerResources = [0, 10, 10, 0];
 
 function startGame() {
     gameArea.start();
@@ -50,8 +43,7 @@ class MapHex {
 
         this.terrain = terrain || 'default';
         this.buildingState = buildingState || 0;
-        this.buildings = [];
-        this.buildingOptions = getBuildingOptions(this.terrain, this.buildings);
+        this.buildingOptions = getBuildingOptions(this.terrain);
         this.owner = 'none';
         this.selected = false;
     }
@@ -164,6 +156,21 @@ function drawCursor(screen) {
     screen.ctx.fillRect(centerX - 6, centerY - 2, 12, 4);
 }
 
+function drawResourceCounter(screen, resource, x, y, color) {
+    var color = color || '#802020';
+    screen.ctx.fillStyle = color;
+    screen.ctx.font = '24px Ubuntu';
+
+    screen.ctx.drawImage(icons[0], x, y);
+    screen.ctx.fillText(': ' + resource[0], x + 25, y + 25);
+    screen.ctx.drawImage(icons[1], x + 75, y);
+    screen.ctx.fillText(': ' + resource[1], x + 100, y + 25);
+    screen.ctx.drawImage(icons[2], x + 150, y);
+    screen.ctx.fillText(': ' + resource[2], x + 175, y + 25);
+    screen.ctx.drawImage(icons[3], x + 222, y);
+    screen.ctx.fillText(': ' + resource[3], x + 250, y + 25);
+}
+
 function drawSideboard(screen) {
     var leftEdge = gameArea.canvas.width * (2/3),
         hex = findSelectedHex(gameGrid);
@@ -176,19 +183,10 @@ function drawSideboard(screen) {
     screen.ctx.fillStyle = '#505050';
     screen.ctx.fillRect(leftEdge + 10, 10, leftEdge/2 - 20, 50)
 
-    screen.ctx.fillStyle = '#ffffff';
-    screen.ctx.font = '24px Ubuntu';
-
-    screen.ctx.drawImage(icons[0], leftEdge + 15, 20);
-    screen.ctx.fillText(': ' + playerResources.people, leftEdge + 45, 45);
-    screen.ctx.drawImage(icons[1], leftEdge + 100, 20);
-    screen.ctx.fillText(': ' + playerResources.lumber, leftEdge + 130, 45);
-    screen.ctx.drawImage(icons[2], leftEdge + 185, 20);
-    screen.ctx.fillText(': ' + playerResources.corn, leftEdge + 215, 45);
-    screen.ctx.drawImage(icons[3], leftEdge + 267, 20);
-    screen.ctx.fillText(': ' + playerResources.iron, leftEdge + 300, 45);
+    drawResourceCounter(screen, playerResources, leftEdge + 32, 20, '#ffffff');
 
     //draw terrain and building status indicators
+    screen.ctx.fillStyle = '#ffffff';
     screen.ctx.fillText('Terrain: ' + hex.terrain, leftEdge + 10, 90);
     screen.ctx.fillText('Building Status: ' + hex.buildingState + '%', leftEdge + 10, 130);
 
@@ -197,20 +195,64 @@ function drawSideboard(screen) {
     screen.ctx.fillRect(leftEdge + 10, 140, leftEdge/2 - 20, gameArea.canvas.height - 200);
 
     screen.ctx.fillStyle = '#404040';
-    if (hex.buildingState > 33) {
-        screen.ctx.fillStyle = '#303030';
-    }
     screen.ctx.fillRect(leftEdge + 20, 150, leftEdge/2 - 40, 100);
-    screen.ctx.fillStyle = '#404040';
-    if (hex.buildingState > 66) {
-        screen.ctx.fillStyle = '#303030';
+    if (hex.terrain !== 'ocean') {        
+        if (!compareArrays(playerResources, hex.buildingOptions[0].cost)) {
+            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#802020');
+            screen.ctx.fillStyle = '#802020';
+            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
+        }
+        else if (hex.buildingState === 1) {
+            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#000000');
+            screen.ctx.fillStyle = '#000000';
+            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
+        }
+        else {
+            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#ffffff');
+            screen.ctx.fillStyle = '#ffffff';
+            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
+        }
     }
+
+    screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 260, leftEdge/2 - 40, 100);
-    screen.ctx.fillStyle = '#404040';
-    if (hex.buildingState > 99) {
-        screen.ctx.fillStyle = '#303030';
+    if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
+        if ((!compareArrays(playerResources, hex.buildingOptions[1].cost)) || (hex.buildingState < 1)) {
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#802020');
+            screen.ctx.fillStyle = '#802020';
+            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
+        }
+        else if (hex.buildingState === 2) {
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#000000');
+            screen.ctx.fillStyle = '#000000';
+            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
+        }
+        else {
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#ffffff');
+            screen.ctx.fillStyle = '#ffffff';
+            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
+        }
     }
+
+    screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 370, leftEdge/2 - 40, 100);
+    if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
+        if ((!compareArrays(playerResources, hex.buildingOptions[2].cost)) || (hex.buildingState < 1)) {
+            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#802020');
+            screen.ctx.fillStyle = '#802020';
+            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 450);
+        }
+        else if (hex.buildingState === 3) {
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 380, '#000000');
+            screen.ctx.fillStyle = '#000000';
+            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 450);
+        }
+        else {
+            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#ffffff');
+            screen.ctx.fillStyle = '#ffffff';
+            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 450);
+        }
+    }
 
     //draw 'build' button
     screen.ctx.fillStyle = '#505050';
@@ -345,7 +387,20 @@ class Building {
     }
 }
 
-function getBuildingOptions(terrain, buildings) {
+function compareArrays (first, second){
+    var n = 0;
+    for (i = 0; i < first.length; i++) {
+        if (first[i] >= second[i]) {
+            n++;
+        }
+    }
+    if (n === first.length) {
+        return true;
+    }
+    return false;
+}
+
+function getBuildingOptions(terrain) {
     var options = [];
 
     options.push(new Building('road'))
