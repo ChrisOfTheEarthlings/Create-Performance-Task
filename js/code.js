@@ -281,6 +281,10 @@ function drawSideboard(screen) {
 
     //draw 'build' button
     screen.ctx.fillStyle = '#505050';
+    if (hover) {
+        screen.ctx.fillStyle = '#606060';
+        hover = 0;
+    }
     screen.ctx.fillRect(leftEdge + 60, 490, leftEdge/2 - 120, 40);
 
     screen.ctx.fillStyle = '#ffffff';
@@ -537,6 +541,7 @@ gameArea.canvas.addEventListener('mousedown', function(event) {
     if ((event.offsetX > 720 + 60) && (event.offsetX < 1080 - 60)) {
         if ((event.offsetY > 490) && (event.offsetY < 530)) {
             findSelectedHex(gameGrid).startBuild(playerResources);
+            hover = 1;
         }
     }
 });
@@ -561,6 +566,7 @@ var centerX = (gameArea.canvas.width * (2 / 3)) / 2,
     centerY = gameArea.canvas.height / 2,
     gridCenterX = centerX,
     gridCenterY = centerY;
+    hover = 0;
 
 function update() {
     frame++;
