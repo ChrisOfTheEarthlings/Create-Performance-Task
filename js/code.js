@@ -519,7 +519,6 @@ function build(grid) {
 
 function updateResources(grid, resources) {
     var max = maxResources(numberOfBuildings(gameGrid));
-    console.log(max);
     if ((frame / 60) % 1 === 0) {
         for (i = 0; i < grid.length; i++) {
             var hex = grid[i];
