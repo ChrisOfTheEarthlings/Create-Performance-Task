@@ -175,19 +175,32 @@ function drawCursor(screen) {
     screen.ctx.fillRect(centerX - 6, centerY - 2, 12, 4);
 }
 
-function drawResourceCounter(screen, resource, x, y, color) {
-    var color = color || '#802020';
+function drawResourceCounter(screen, resource, x, y, color, floor) {
+    var color = color || '#802020',
+        floorResources = [];
     screen.ctx.fillStyle = color;
     screen.ctx.font = '24px Ubuntu';
 
+
+    if (floor) {
+        for (i = 0; i < 4; i++) {
+            floorResources.push(Math.floor(resource[i]));
+        }
+    }
+    else {
+        for (i = 0; i < 4; i++) {
+            floorResources.push(resource[i]);
+        }
+    }
+
     screen.ctx.drawImage(icons[0], x, y);
-    screen.ctx.fillText(': ' + Math.floor(resource[0]), x + 25, y + 25);
+    screen.ctx.fillText(': ' + floorResources[0], x + 25, y + 25);
     screen.ctx.drawImage(icons[1], x + 75, y);
-    screen.ctx.fillText(': ' + Math.floor(resource[1]), x + 100, y + 25);
+    screen.ctx.fillText(': ' + floorResources[1], x + 100, y + 25);
     screen.ctx.drawImage(icons[2], x + 150, y);
-    screen.ctx.fillText(': ' + Math.floor(resource[2]), x + 175, y + 25);
+    screen.ctx.fillText(': ' + floorResources[2], x + 175, y + 25);
     screen.ctx.drawImage(icons[3], x + 222, y);
-    screen.ctx.fillText(': ' + Math.floor(resource[3]), x + 250, y + 25);
+    screen.ctx.fillText(': ' + floorResources[3], x + 250, y + 25);
 }
 
 function drawSideboard(screen) {
@@ -202,7 +215,7 @@ function drawSideboard(screen) {
     screen.ctx.fillStyle = '#505050';
     screen.ctx.fillRect(leftEdge + 10, 10, leftEdge/2 - 20, 50)
 
-    drawResourceCounter(screen, playerResources, leftEdge + 32, 20, '#ffffff');
+    drawResourceCounter(screen, playerResources, leftEdge + 32, 20, '#ffffff', true);
 
     //draw terrain and building status indicators
     screen.ctx.fillStyle = '#ffffff';
@@ -217,18 +230,18 @@ function drawSideboard(screen) {
     screen.ctx.fillRect(leftEdge + 20, 150, leftEdge/2 - 40, 100);
     if (hex.terrain !== 'ocean') {        
         if (hex.buildings.length >= 1) {
-            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#000000');
+            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#000000', true);
             screen.ctx.fillStyle = '#000000';
             screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
         else if (!compareArrays(playerResources, hex.buildingOptions[0].cost) 
             || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
-            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#802020');
+            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#802020', true);
             screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
         else {
-            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#ffffff');
+            drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#ffffff', true);
             screen.ctx.fillStyle = '#ffffff';
             screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
@@ -238,18 +251,18 @@ function drawSideboard(screen) {
     screen.ctx.fillRect(leftEdge + 20, 260, leftEdge/2 - 40, 100);
     if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
         if (hex.buildings.length >= 2) {
-            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#000000');
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#000000', true);
             screen.ctx.fillStyle = '#000000';
             screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
         else if ((!compareArrays(playerResources, hex.buildingOptions[1].cost)) || (hex.buildings.length < 1) 
             || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
-            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#802020');
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#802020', true);
             screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
         else {
-            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#ffffff');
+            drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#ffffff', true);
             screen.ctx.fillStyle = '#ffffff';
             screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
@@ -259,18 +272,18 @@ function drawSideboard(screen) {
     screen.ctx.fillRect(leftEdge + 20, 370, leftEdge/2 - 40, 100);
     if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
         if (hex.buildings.length >= 3) {
-            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#000000');
+            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#000000', true);
             screen.ctx.fillStyle = '#000000';
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
         }
         else if ((!compareArrays(playerResources, hex.buildingOptions[2].cost)) || (hex.buildings.length < 2) 
             || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
-            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#802020');
+            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#802020', true);
             screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
         }
         else {
-            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#ffffff');
+            drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#ffffff', true);
             screen.ctx.fillStyle = '#ffffff';
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
         }
@@ -290,26 +303,32 @@ function drawSideboard(screen) {
 
 function drawInfoScreen(mouseX, mouseY, screen) {
     var hex = findSelectedHex(gameGrid),
-        elements = [
+        bOps = [
             [740, 150, 1060, 250], 
             [740, 260, 1060, 360], 
             [740, 370, 1060, 470]
         ],
-        length = elements.length;
+        bLength = bOps.length;
         
-    
-    for (c = 0; c < length; c++) {
-        if ((mouseX > elements[c][0]) && (mouseX < elements[c][2]) && (mouseY > elements[c][1]) && (mouseY < elements[c][3])) {
+    for (c = 0; c < bLength; c++) {
+        if ((mouseX > bOps[c][0]) && (mouseX < bOps[c][2]) && (mouseY > bOps[c][1]) && (mouseY < bOps[c][3])) {
 
             screen.ctx.fillStyle = '#303030';
             screen.ctx.fillRect(20, 20, 720 - 40, 540 - 40);
             screen.ctx.fillStyle = '#404040';
             screen.ctx.fillRect(30, 30, 720 - 60, 540 - 60);
 
-            //switch(c) {
-            //    case 0:
+            var hex = findSelectedHex(gameGrid);
+            var building = hex.buildingOptions[c];
 
-            //}
+            screen.ctx.fillStyle = '#ffffff';
+            screen.ctx.fillText('Building Info --- ' + building.type, 40, 60);
+            screen.ctx.fillText('Yeild per second:', 40, 120);
+            drawResourceCounter(gameArea, building.yeild, 40, 130, '#ffffff', false);
+            screen.ctx.fillText('Build time:', 40, 250);
+            screen.ctx.fillText(building.time + ' seconds', 60, 290);
+            screen.ctx.fillText('Description:', 40, 380);
+            screen.ctx.fillText(building.flavorText, 60, 420, 600);
         }
     }
 }
@@ -367,88 +386,102 @@ class Building {
 
         switch (type) {
             case 'road': 
-                this.cost = [0, 5, 5, 0];
+                this.cost = [5, 5, 5, 5];
                 this.yeild = [0, 0, 0, 0]; //Yield per second
                 this.flavorText = 'A road, must be built but produces no resources.';
                 this.icon = 'R';
+                this.time = 5;
                 break;
             case 'bridge': 
-                this.cost = [0, 5, 5, 0];
+                this.cost = [5, 5, 5, 5];
                 this.yeild = [0, 0, 0, 0]; //Yield per second
                 this.flavorText = 'A bridge for crossing water.';
                 this.icon = 'B';
+                this.time = 5;
                 break;
             case 'settlement':
-                this.cost = [0, 20, 10, 5];
-                this.yeild = [.25, .05, -.25, .05];
+                this.cost = [5, 20, 10, 5];
+                this.yeild = [1, 0, 0, 0];
                 this.flavorText = 'A settlement, build to increase Population';
                 this.icon = 'S';
+                this.time = 5;
                 break;
             case 'settlement +':
-                this.cost = [20, 20, 10, 40];
-                this.yeild = [.75, .05, -.25, .05];
+                this.cost = [15, 30, 20, 25];
+                this.yeild = [3, 0, 0, 0];
                 this.flavorText = 'An additional settlement, build to quadruple Population increase';
                 this.icon = 'S+';
+                this.time = 10;
                 break;
             case 'mine':
-                this.cost = [10, 30, 0, 10];
-                this.yeild = [0, 0, -.25, 1];
+                this.cost = [5, 20, 5, 10];
+                this.yeild = [0, 0, 0, 1];
                 this.flavorText = 'A mine, build to produce Iron';
                 this.icon = 'M';
+                this.time = 5;
                 break;
             case 'mine +':
-                this.cost = [20, 40, 0, 20];
-                this.yeild = [0, 0, -.25, 2];
+                this.cost = [15, 30, 15, 20];
+                this.yeild = [0, 0, 0, 3];
                 this.flavorText = 'An additional mine, build to quadruple Iron production';
                 this.icon = 'M+';
+                this.time = 10;
                 break;
             case 'farm':
-                this.cost = [10, 20, 5, 15];
-                this.yeild = [-.25, 0, 1, 0];
+                this.cost = [20, 10, 5, 5];
+                this.yeild = [0, 0, 1, 0];
                 this.flavorText = 'A farm, build to produce Corn';
                 this.icon = 'F';
+                this.time = 5;
                 break;
             case 'farm +':
-                this.cost = [20, 30, 5, 25];
-                this.yeild = [-.25, 0, 2, 0];
+                this.cost = [30, 20, 15, 15];
+                this.yeild = [0, 0, 3, 0];
                 this.flavorText = 'An additional farm, build to quadruple Corn production';
                 this.icon = 'F+';
+                this.time = 10;
                 break;
             case 'wood cutter':
-                this.cost = [10, 10, 0 , 30];
-                this.yeild = [0, 1, -.25, 0];
+                this.cost = [5, 10, 5, 20];
+                this.yeild = [0, 1, 0, 0];
                 this.flavorText = 'A wood cutter, build to produce Lumber';
                 this.icon = 'W';
+                this.time = 5;
                 break;
             case 'wood cutter +':
-                this.cost = [20, 20, 0, 40];
-                this.yeild = [0, 2, -.25, 0];
+                this.cost = [15, 20, 15, 30];
+                this.yeild = [0, 3, 0, 0];
                 this.flavorText = 'An additional wood cutter, build to quadruple Lumber production';
                 this.icon = 'W+';
+                this.time = 10;
                 break;
             case 'castle lv. 1':
                 this.cost = [5, 5, 5, 5];
-                this.yeild = [.5, .5, 2, .5];
+                this.yeild = [1, 1, 1, 1];
                 this.flavorText = 'A level 1 castle. Achieve level 3 to win';
                 this.icon = 'C1';
+                this.time = 0;
                 break;
             case 'castle lv. 2':
                 this.cost = [20, 20, 20, 20];
-                this.yeild = [.5, .5, 2, .5];
+                this.yeild = [1, 1, 1, 1];
                 this.flavorText = 'A level 2 castle. Achieve level 3 to win';
                 this.icon = 'C2';
+                this.time = 20;
                 break;
             case 'castle lv. 3':
                 this.cost = [90, 90, 90, 90];
                 this.yeild = [3, 3, 3, 3];
                 this.flavorText = 'A level 3 castle. If this is built you win!';
                 this.icon = 'C3';
+                this.time = 30;
                 break;
             default:
                 this.cost = [100, 100, 100, 100];
                 this.yeild = [0, 0, 0, 0];
                 this.flavorText = 'Unidentified';
                 this.icon = 'U';
+                this.time = 1000;
                 break;
         }
     }
@@ -517,9 +550,9 @@ function numberOfBuildings(grid) {
 
 function maxResources(numBuildings) {
     var maxResources = 20;
-    maxResources += Math.floor(numBuildings * 2);
-    if (maxResources > 99) {
-        maxResources = 100;
+    maxResources += Math.floor(numBuildings * 10);
+    if (maxResources > 900) {
+        maxResources = 900;
     }
     return maxResources;
 }
@@ -528,7 +561,9 @@ function build(grid) {
     for (i = 0; i < grid.length; i++) {
         if (grid[i].isBuilding === 1) {
             if (grid[i].buildingState < 100) {
-                grid[i].buildingState++;
+                if ((frame / (grid[i].buildingOptions[grid[i].nextBuilding].time * .6))%1 === 0) {
+                    grid[i].buildingState++;
+                }
             }
             else {
                 grid[i].buildingState = 0;
