@@ -124,12 +124,9 @@ function drawHexagon(zeroX, zeroY, hex, screen, border) {
 }
 
 function drawGrid(screen, grid, offset, zeroX, zeroY) {
-    for (i = 0; i < grid.length; i++) {
+    for (cHex = 0; cHex < grid.length; cHex++) {
         
-        var hex = grid[i];
-
-        if (hex.selected === true) {
-        }
+        var hex = grid[cHex];
 
         if (hex.terrain !== 'water') {
             screen.ctx.fillStyle = '#303030'
@@ -289,6 +286,32 @@ function drawSideboard(screen) {
 
     screen.ctx.fillStyle = '#ffffff';
     screen.ctx.fillText('build', leftEdge + 151, 520);
+}
+
+function drawInfoScreen(mouseX, mouseY, screen) {
+    var hex = findSelectedHex(gameGrid),
+        elements = [
+            [740, 150, 1060, 250], 
+            [740, 260, 1060, 360], 
+            [740, 370, 1060, 470]
+        ],
+        length = elements.length;
+        
+    
+    for (c = 0; c < length; c++) {
+        if ((mouseX > elements[c][0]) && (mouseX < elements[c][2]) && (mouseY > elements[c][1]) && (mouseY < elements[c][3])) {
+
+            screen.ctx.fillStyle = '#303030';
+            screen.ctx.fillRect(20, 20, 720 - 40, 540 - 40);
+            screen.ctx.fillStyle = '#404040';
+            screen.ctx.fillRect(30, 30, 720 - 60, 540 - 60);
+
+            //switch(c) {
+            //    case 0:
+
+            //}
+        }
+    }
 }
 
 function findSelectedHex(grid) {
@@ -555,6 +578,9 @@ gameArea.canvas.addEventListener('mousemove', function(event) {
         gridCenterX += changeX;
         gridCenterY += changeY;
     }
+
+    mouseX = event.offsetX;
+    mouseY = event.offsetY;
 });
 
 startGame();
@@ -563,6 +589,8 @@ var gameGrid = buildGrid(5, 5, 5, radius, offset);
 
 var centerX = (gameArea.canvas.width * (2 / 3)) / 2, 
     centerY = gameArea.canvas.height / 2,
+    mouseX = null,
+    mouseY = null,
     gridCenterX = centerX,
     gridCenterY = centerY;
     hover = 0;
@@ -576,4 +604,5 @@ function update() {
     drawSideboard(gameArea);
     build(gameGrid);
     updateResources(gameGrid, playerResources);
+    drawInfoScreen(mouseX, mouseY, gameArea);
 }
