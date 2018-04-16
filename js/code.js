@@ -21,7 +21,9 @@ icons[1].src = 'assets/icons/lumber.png';
 icons[2].src = 'assets/icons/corn.png';
 icons[3].src = 'assets/icons/iron.png';
 
-var playerResources = [5, 5, 5, 5];
+var playerResources = [30, 30, 30, 30],
+    changeInRes = [0, 0, 0, 0],
+    interval;
 
 function startGame() {
     gameArea.start();
@@ -583,6 +585,7 @@ function updateResources(grid, resources) {
             for (j = 0; j < hex.buildings.length; j++) {
                 for (k = 0; k < 4; k++) {
                     resources[k] += hex.buildings[j].yeild[k];
+                    changeInRes[k] += hex.buildings[j].yeild[k];
                     if (resources[k] > max) {
                         resources[k] = max;
                     }
@@ -590,6 +593,44 @@ function updateResources(grid, resources) {
             }
         }
     }
+}
+
+function detectWin(grid) {
+    var length = grid.length;
+    for (d = 0; d < length; d++) {
+        var hex = grid[d];
+        if (hex.buildings.length === 3) {
+            if (hex.buildings[2].type === "castle lv. 3") {
+                finishGame(gameArea);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function finishGame(screen) {
+    clearInterval(interval);
+    screen.ctx.fillStyle = '#505050';
+    screen.ctx.fillRect(0, 0, screen.canvas.width, screen.canvas.height);
+    screen.ctx.fillStyle = '#ffffff';
+    screen.ctx.font = '58px Ubuntu';
+    screen.ctx.fillText('You Won!', 430, 270);
+    var totalBuildings = 0,
+        totalResources = changeInRes[0] + changeInRes[1] + changeInRes[2] + changeInRes[3],
+        time = frame/60,
+        scoreInstant;
+
+    for (p = 0; p < gameGrid.length; p++) {
+        totalBuildings += gameGrid[p].buildings.length;
+    }
+
+    scoreInstant = floor(((totalBuildings * 1000) + totalResources) / time);
+
+    var score = scoreInstant + 1;
+
+    screen.ctx.fillText('your score was: ' + score, 350, 350);
+
 }
 
 var mouseDown = false;
@@ -640,4 +681,5 @@ function update() {
     build(gameGrid);
     updateResources(gameGrid, playerResources);
     drawInfoScreen(mouseX, mouseY, gameArea);
+    detectWin(gameGrid);
 }
