@@ -27,7 +27,7 @@ var playerResources = [30, 30, 30, 30],
 
 function startGame() {
     gameArea.start();
-    var interval = setInterval(update, 1000/60);
+    interval = setInterval(update, 1000/60);
 }
 
 //x is right, y is left, z is down
@@ -59,7 +59,8 @@ MapHex.prototype.startBuild = function(resources) {
         this.nextBuilding = 3;
     }
     if (compareArrays(playerResources, this.buildingOptions[this.nextBuilding].cost) && 
-        (neighborsHaveBuildings(gameGrid, this))) {
+        (neighborsHaveBuildings(gameGrid, this)) && 
+        (this.isBuilding !== 1)) {
 
         this.isBuilding = 1;
         for (i = 0; i < resources.length; i++) {
@@ -237,7 +238,8 @@ function drawSideboard(screen) {
             screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
         else if (!compareArrays(playerResources, hex.buildingOptions[0].cost) 
-            || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
+            || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))
+            || (hex.isBuilding === 1)) {
             drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#802020', true);
             screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
@@ -258,7 +260,8 @@ function drawSideboard(screen) {
             screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
         else if ((!compareArrays(playerResources, hex.buildingOptions[1].cost)) || (hex.buildings.length < 1) 
-            || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
+            || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))
+            || (hex.isBuilding === 1)) {
             drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#802020', true);
             screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
@@ -279,7 +282,8 @@ function drawSideboard(screen) {
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
         }
         else if ((!compareArrays(playerResources, hex.buildingOptions[2].cost)) || (hex.buildings.length < 2) 
-            || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))) {
+            || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))
+            || (hex.isBuilding === 1)) {
             drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#802020', true);
             screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
@@ -619,17 +623,15 @@ function finishGame(screen) {
     var totalBuildings = 0,
         totalResources = changeInRes[0] + changeInRes[1] + changeInRes[2] + changeInRes[3],
         time = frame/60,
-        scoreInstant;
+        score;
 
     for (p = 0; p < gameGrid.length; p++) {
         totalBuildings += gameGrid[p].buildings.length;
     }
 
-    scoreInstant = floor(((totalBuildings * 1000) + totalResources) / time);
+    score = Math.floor(((totalBuildings * 1000) + totalResources) / time);
 
-    var score = scoreInstant + 1;
-
-    screen.ctx.fillText('your score was: ' + score, 350, 350);
+    screen.ctx.fillText('your score was: ' + score, 275, 350);
 
 }
 
