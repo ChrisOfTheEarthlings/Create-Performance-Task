@@ -678,6 +678,19 @@ gameArea.canvas.addEventListener('mousemove', function(event) {
     mouseY = event.offsetY;
 });
 
+gameArea.canvas.addEventListener('touchmove', function(event) {
+    var changeX = event.movementX,
+        changeY = event.movementY;
+
+    if (mouseDown) {
+        gridCenterX += changeX;
+        gridCenterY += changeY;
+    }
+
+    mouseX = event.offsetX;
+    mouseY = event.offsetY;
+});
+
 startGame();
 
 var gameGrid = buildGrid(5, 5, 5, radius, offset);
