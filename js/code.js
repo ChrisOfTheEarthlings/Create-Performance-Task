@@ -692,6 +692,9 @@ gameArea.canvas.addEventListener('touchmove', function(event) {
     
     gridCenterX += changeX;
     gridCenterY += changeY;
+
+    touchX = parseInt(first.clientX);
+    touchY = parseInt(first.clientY);
 });
 
 startGame();
