@@ -641,7 +641,7 @@ function finishGame(screen) {
         score;
 
     for (p = 0; p < gameGrid.length; p++) {
-        for (q = 0; q < gameGrid[p].buildings.length; p++) {
+        for (q = 0; q < gameGrid[p].buildings.length; q++) {
             totalBuildings += gameGrid[p].buildings[q].points;
         }
     }
