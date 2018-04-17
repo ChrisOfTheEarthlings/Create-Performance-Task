@@ -646,7 +646,7 @@ function finishGame(screen) {
         }
     }
 
-    score = Math.floor(((totalBuildings * 1000) + totalResources) / time);
+    score = Math.floor(((totalBuildings * 1000) + totalResources) / (time / 60));
 
     screen.ctx.fillText('your score was: ' + score, 275, 350);
 
