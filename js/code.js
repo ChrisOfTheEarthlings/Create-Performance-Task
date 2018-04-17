@@ -389,98 +389,113 @@ function selectTile(grid) {
 class Building {
     constructor(type) {
         this.type = type || 'generic';
+        this.d = 1;
 
         switch (type) {
             case 'road': 
-                this.cost = [5, 5, 5, 5];
+                this.cost = [5 * this.d, 5 * this.d, 5 * this.d, 5 * this.d];
                 this.yeild = [0, 0, 0, 0]; //Yield per second
                 this.flavorText = 'A road, must be built but produces no resources.';
                 this.icon = 'R';
-                this.time = 5;
+                this.time = 5 * this.d;
+                this.points = 0;
                 break;
             case 'bridge': 
-                this.cost = [5, 5, 5, 5];
+                this.cost = [5 * this.d, 5 * this.d, 5 * this.d, 5 * this.d];
                 this.yeild = [0, 0, 0, 0]; //Yield per second
                 this.flavorText = 'A bridge for crossing water.';
                 this.icon = 'B';
-                this.time = 5;
+                this.time = 5 * this.d;
+                this.points = 0;
                 break;
             case 'settlement':
-                this.cost = [5, 20, 10, 5];
+                this.cost = [5 * this.d, 20 * this.d, 10 * this.d, 5 * this.d];
                 this.yeild = [1, 0, 0, 0];
                 this.flavorText = 'A settlement, build to increase Population';
                 this.icon = 'S';
-                this.time = 5;
+                this.time = 5 * this.d;
+                this.points = 500;
                 break;
             case 'settlement +':
-                this.cost = [15, 30, 20, 25];
+                this.cost = [20 * this.d, 80 * this.d, 40 * this.d, 20 * this.d];
                 this.yeild = [3, 0, 0, 0];
                 this.flavorText = 'An additional settlement, build to quadruple Population increase';
                 this.icon = 'S+';
-                this.time = 10;
+                this.time = 10 * this.d;
+                this.points = 1000;
                 break;
             case 'mine':
-                this.cost = [5, 20, 5, 10];
+                this.cost = [5 * this.d, 20 * this.d, 5 * this.d, 10 * this.d];
                 this.yeild = [0, 0, 0, 1];
                 this.flavorText = 'A mine, build to produce Iron';
                 this.icon = 'M';
-                this.time = 5;
+                this.time = 5 * this.d;
+                this.points = 500;
                 break;
             case 'mine +':
-                this.cost = [15, 30, 15, 20];
+                this.cost = [20 * this.d, 80 * this.d, 20 * this.d, 40 * this.d];
                 this.yeild = [0, 0, 0, 3];
                 this.flavorText = 'An additional mine, build to quadruple Iron production';
                 this.icon = 'M+';
-                this.time = 10;
+                this.time = 10 * this.d;
+                this.points = 1000;
                 break;
             case 'farm':
-                this.cost = [20, 10, 5, 5];
+                this.cost = [20 * this.d, 10 * this.d, 5 * this.d, 5 * this.d];
                 this.yeild = [0, 0, 1, 0];
                 this.flavorText = 'A farm, build to produce Corn';
                 this.icon = 'F';
-                this.time = 5;
+                this.time = 5 * this.d;
+
+                this.points = 500;
                 break;
             case 'farm +':
-                this.cost = [30, 20, 15, 15];
+                this.cost = [80 * this.d, 40 * this.d, 20 * this.d, 20 * this.d];
                 this.yeild = [0, 0, 3, 0];
                 this.flavorText = 'An additional farm, build to quadruple Corn production';
                 this.icon = 'F+';
-                this.time = 10;
+                this.time = 10 * this.d;
+                this.points = 1000;
                 break;
             case 'wood cutter':
-                this.cost = [5, 10, 5, 20];
+                this.cost = [5 * this.d, 10 * this.d, 5 * this.d, 20 * this.d];
                 this.yeild = [0, 1, 0, 0];
                 this.flavorText = 'A wood cutter, build to produce Lumber';
                 this.icon = 'W';
-                this.time = 5;
+                this.time = 5 * this.d;
+                this.points = 500;
                 break;
             case 'wood cutter +':
-                this.cost = [15, 20, 15, 30];
+                this.cost = [20 * this.d, 80 * this.d, 20 * this.d, 80 * this.d];
                 this.yeild = [0, 3, 0, 0];
                 this.flavorText = 'An additional wood cutter, build to quadruple Lumber production';
                 this.icon = 'W+';
-                this.time = 10;
+                this.time = 10 * this.d;
+                this.points = 1000;
                 break;
             case 'castle lv. 1':
-                this.cost = [5, 5, 5, 5];
+                this.cost = [0 * this.d, 0 * this.d, 0 * this.d, 0 * this.d];
                 this.yeild = [1, 1, 1, 1];
                 this.flavorText = 'A level 1 castle. Achieve level 3 to win';
                 this.icon = 'C1';
-                this.time = 0;
+                this.time = 0 * this.d;
+                this.points = 0;
                 break;
             case 'castle lv. 2':
-                this.cost = [20, 20, 20, 20];
+                this.cost = [150 * this.d, 150 * this.d, 150 * this.d, 150 * this.d];
                 this.yeild = [1, 1, 1, 1];
                 this.flavorText = 'A level 2 castle. Achieve level 3 to win';
                 this.icon = 'C2';
-                this.time = 20;
+                this.time = 20 * this.d;
+                this.points = 500;
                 break;
             case 'castle lv. 3':
-                this.cost = [90, 90, 90, 90];
+                this.cost = [300 * this.d, 300 * this.d, 300 * this.d, 300 * this.d];
                 this.yeild = [3, 3, 3, 3];
                 this.flavorText = 'A level 3 castle. If this is built you win!';
                 this.icon = 'C3';
-                this.time = 30;
+                this.time = 30 * this.d;
+                this.points = 1000;
                 break;
             default:
                 this.cost = [100, 100, 100, 100];
@@ -626,7 +641,9 @@ function finishGame(screen) {
         score;
 
     for (p = 0; p < gameGrid.length; p++) {
-        totalBuildings += gameGrid[p].buildings.length;
+        for (q = 0; q < gameGrid[p].buildings.length; p++) {
+            totalBuildings += gameGrid[p].buildings[q].points;
+        }
     }
 
     score = Math.floor(((totalBuildings * 1000) + totalResources) / time);
@@ -670,7 +687,8 @@ var centerX = (gameArea.canvas.width * (2 / 3)) / 2,
     mouseX = null,
     mouseY = null,
     gridCenterX = centerX,
-    gridCenterY = centerY;
+    gridCenterY = centerY,
+    difficulty = 1,
     hover = 0;
 
 function update() {
