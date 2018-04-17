@@ -678,17 +678,20 @@ gameArea.canvas.addEventListener('mousemove', function(event) {
     mouseY = event.offsetY;
 });
 
+var touchX, touchY;
+gameArea.canvas.addEventListener('touchstart', function(event) {
+    var first = event.changedTouches[0]
+    touchX = parseInt(touchobj.clientX);
+    touchY = parseInt(touchobj.clientY);
+});
+
 gameArea.canvas.addEventListener('touchmove', function(event) {
-    var changeX = event.movementX,
-        changeY = event.movementY;
-
-    if (mouseDown) {
-        gridCenterX += changeX;
-        gridCenterY += changeY;
-    }
-
-    mouseX = event.offsetX;
-    mouseY = event.offsetY;
+    var first = event.changedTouches[0],
+        changeX = parseInt(touchobj.clientX) - touchX,
+        changeY = parseInt(touchobj.clientY) - touchY;
+    
+    gridCenterX += changeX;
+    gridCenterY += changeY;
 });
 
 startGame();
