@@ -466,7 +466,7 @@ class Building {
                 this.points = 500;
                 break;
             case 'wood cutter +':
-                this.cost = [20 * this.d, 80 * this.d, 20 * this.d, 80 * this.d];
+                this.cost = [20 * this.d, 40 * this.d, 20 * this.d, 80 * this.d];
                 this.yeild = [0, 3, 0, 0];
                 this.flavorText = 'An additional wood cutter, build to quadruple Lumber production';
                 this.icon = 'W+';
@@ -646,7 +646,7 @@ function finishGame(screen) {
         }
     }
 
-    score = Math.floor(((totalBuildings * 1000) + totalResources) / (time / 60));
+    score = Math.floor((totalBuildings * 1000) / (time * 10));
 
     screen.ctx.fillText('your score was: ' + score, 275, 350);
 
