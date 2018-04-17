@@ -695,6 +695,7 @@ gameArea.canvas.addEventListener('touchmove', function(event) {
 
     touchX = parseInt(first.clientX);
     touchY = parseInt(first.clientY);
+    event.preventDefault();
 });
 
 startGame();
