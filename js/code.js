@@ -169,6 +169,13 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
             screen.ctx.fillText(hex.buildings[hex.buildings.length - 1].icon, zeroX - hex.hexX, zeroY - hex.hexY);
         }
 
+        if (hex.isBuilding === 1) {
+            screen.ctx.fillStyle = '#aaaaaa';
+            screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50, 10);
+            screen.ctx.fillStyle = '#dddddd';
+            screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50 * (hex.buildingState / 100), 10)
+        }
+
         if (hex.selected) {
             screen.ctx.fillStyle = '#ffffff25';
             drawHexagon(zeroX, zeroY, hex, gameArea, false);
