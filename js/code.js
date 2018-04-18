@@ -99,7 +99,7 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
     var random = findRandomHex(grid),
         copy = grid[random];
     console.log(random)
-    grid[random] = new MapHex(copy.x, copy.y, copy.z, radius, offset, 'home', [new Building('castle lv. 1')]);
+    grid[random] = new MapHex(copy.x, copy.y, copy.z, radius, offset, 'castle', [new Building('castle lv. 1')]);
 
     gridCenterX += grid[random].hexX;
     gridCenterY += grid[random].hexY;
@@ -153,7 +153,7 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
                 case 'grassland': 
                     screen.ctx.fillStyle = '#608038';
                     break;
-                case 'home': 
+                case 'castle': 
                     screen.ctx.fillStyle = '#906060';
                     break;
                 default: 
@@ -536,7 +536,7 @@ function getBuildingOptions(terrain) {
     options.push(new Building('road'))
 
     switch (terrain) {
-        case 'home': 
+        case 'castle': 
             options.shift();
             options.push(new Building('castle lv. 1'));
             options.push(new Building('castle lv. 2'));
