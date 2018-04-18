@@ -1,11 +1,11 @@
 body {
-	background-color: #FFFFFF;
+	background-color: #303030;
 	color: #909090;
 	font-family: 'Ubuntu', sans-serif;
 }
 
 canvas {
-	border: 1px solid #000;
+	border: none;
 	background-color: #23C;
 	padding: 0;
 	margin: auto;
