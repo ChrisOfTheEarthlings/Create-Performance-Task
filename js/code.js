@@ -71,16 +71,13 @@ MapHex.prototype.startBuild = function(resources) {
 
 
 function buildGrid(xSize, ySize, zSize, radius, offset) {
-    var grid = []
+    var grid = [];
     for (var x = 1 - xSize; x < xSize; x++) {
         for (var y = 1 - ySize; y < ySize; y++) {
             for (var z = 1 - zSize; z < zSize; z++) {
                 if (x + y + z === 0) {
                     var randomNum = Math.random();
-                    if ((x === y) && (y === z) && (z == 0)) {
-                        grid.push(new MapHex(x, y, z, radius, offset, 'home', [new Building('castle lv. 1')]));
-                    }
-                    else if (randomNum < .4) {
+                    if (randomNum < .4) {
                         grid.push(new MapHex(x, y, z, radius, offset, 'water'));
                     }
                     else if (randomNum < .7) {
@@ -99,6 +96,13 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
             }
         }
     }
+    var random = findRandomHex(grid),
+        copy = grid[random];
+    console.log(random)
+    grid[random] = new MapHex(copy.x, copy.y, copy.z, radius, offset, 'home', [new Building('castle lv. 1')]);
+
+    gridCenterX += grid[random].hexX;
+    gridCenterY += grid[random].hexY;
     console.log(grid);
     return grid;
 }
@@ -346,6 +350,11 @@ function findSelectedHex(grid) {
         }
     }
     return new MapHex('none', '', '', null, null, 'ocean', 0);
+}
+
+function findRandomHex(grid) {
+    //returns array index value of tile
+    return Math.floor(Math.random() * grid.length);
 }
 
 function neighborsHaveBuildings(grid, hex) {
@@ -700,7 +709,6 @@ gameArea.canvas.addEventListener('touchmove', function(event) {
 
 startGame();
 
-var gameGrid = buildGrid(5, 5, 5, radius, offset);
 
 var centerX = (gameArea.canvas.width * (2 / 3)) / 2, 
     centerY = gameArea.canvas.height / 2,
@@ -709,7 +717,8 @@ var centerX = (gameArea.canvas.width * (2 / 3)) / 2,
     gridCenterX = centerX,
     gridCenterY = centerY,
     difficulty = 1,
-    hover = 0;
+    hover = 0,
+    gameGrid = buildGrid(5, 5, 5, radius, offset);
 
 function update() {
     frame++;
