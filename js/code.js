@@ -21,13 +21,30 @@ icons[1].src = 'assets/icons/lumber.png';
 icons[2].src = 'assets/icons/corn.png';
 icons[3].src = 'assets/icons/iron.png';
 
-var playerResources = [30, 30, 30, 30],
-    changeInRes = [0, 0, 0, 0],
-    interval;
+var playerResources,
+    changeInRes,
+    interval,
+    centerX, 
+    centerY,
+    mouseX,
+    mouseY,
+    gridCenterX,
+    gridCenterY,
+    hover,
+    gameGrid,
+    difficulty,
+    mapSize,
+    gameOver,
+    reset;
 
 function startGame() {
     gameArea.start();
+    reset = false;
+    gameOver = false;
     interval = setInterval(update, 1000/60);
+    difficulty = 1;
+    mapSize = 5;
+    newGame();
 }
 
 //x is right, y is left, z is down
@@ -340,14 +357,18 @@ function drawInfoScreen(mouseX, mouseY, screen) {
 
             screen.ctx.fillStyle = '#ffffff';
             screen.ctx.fillText('Building Info --- ' + building.type, 40, 60);
-            screen.ctx.fillText('Yeild per second:', 40, 120);
-            drawResourceCounter(gameArea, building.yeild, 40, 130, '#ffffff', false);
+            screen.ctx.fillText('yield per second:', 40, 120);
+            drawResourceCounter(gameArea, building.yield, 40, 130, '#ffffff', false);
             screen.ctx.fillText('Build time:', 40, 250);
             screen.ctx.fillText(building.time + ' seconds', 60, 290);
             screen.ctx.fillText('Description:', 40, 380);
             screen.ctx.fillText(building.flavorText, 60, 420, 600);
         }
     }
+}
+
+function drawStartScreen() {
+
 }
 
 function findSelectedHex(grid) {
@@ -405,12 +426,12 @@ function selectTile(grid) {
 class Building {
     constructor(type) {
         this.type = type || 'generic';
-        this.d = 1;
+        this.d = difficulty;
 
         switch (type) {
             case 'road': 
                 this.cost = [5 * this.d, 5 * this.d, 5 * this.d, 5 * this.d];
-                this.yeild = [0, 0, 0, 0]; //Yield per second
+                this.yield = [0, 0, 0, 0]; //Yield per second
                 this.flavorText = 'A road, must be built but produces no resources.';
                 this.icon = 'R';
                 this.time = 5 * this.d;
@@ -418,7 +439,7 @@ class Building {
                 break;
             case 'bridge': 
                 this.cost = [5 * this.d, 5 * this.d, 5 * this.d, 5 * this.d];
-                this.yeild = [0, 0, 0, 0]; //Yield per second
+                this.yield = [0, 0, 0, 0]; //Yield per second
                 this.flavorText = 'A bridge for crossing water.';
                 this.icon = 'B';
                 this.time = 5 * this.d;
@@ -426,7 +447,7 @@ class Building {
                 break;
             case 'settlement':
                 this.cost = [5 * this.d, 20 * this.d, 10 * this.d, 5 * this.d];
-                this.yeild = [1, 0, 0, 0];
+                this.yield = [1, 0, 0, 0];
                 this.flavorText = 'A settlement, build to increase Population';
                 this.icon = 'S';
                 this.time = 5 * this.d;
@@ -434,7 +455,7 @@ class Building {
                 break;
             case 'settlement +':
                 this.cost = [20 * this.d, 80 * this.d, 40 * this.d, 20 * this.d];
-                this.yeild = [3, 0, 0, 0];
+                this.yield = [3, 0, 0, 0];
                 this.flavorText = 'An additional settlement, build to quadruple Population increase';
                 this.icon = 'S+';
                 this.time = 10 * this.d;
@@ -442,7 +463,7 @@ class Building {
                 break;
             case 'mine':
                 this.cost = [5 * this.d, 20 * this.d, 5 * this.d, 10 * this.d];
-                this.yeild = [0, 0, 0, 1];
+                this.yield = [0, 0, 0, 1];
                 this.flavorText = 'A mine, build to produce Iron';
                 this.icon = 'M';
                 this.time = 5 * this.d;
@@ -450,7 +471,7 @@ class Building {
                 break;
             case 'mine +':
                 this.cost = [20 * this.d, 80 * this.d, 20 * this.d, 40 * this.d];
-                this.yeild = [0, 0, 0, 3];
+                this.yield = [0, 0, 0, 3];
                 this.flavorText = 'An additional mine, build to quadruple Iron production';
                 this.icon = 'M+';
                 this.time = 10 * this.d;
@@ -458,16 +479,15 @@ class Building {
                 break;
             case 'farm':
                 this.cost = [20 * this.d, 10 * this.d, 5 * this.d, 5 * this.d];
-                this.yeild = [0, 0, 1, 0];
+                this.yield = [0, 0, 1, 0];
                 this.flavorText = 'A farm, build to produce Corn';
                 this.icon = 'F';
                 this.time = 5 * this.d;
-
                 this.points = 500;
                 break;
             case 'farm +':
                 this.cost = [80 * this.d, 40 * this.d, 20 * this.d, 20 * this.d];
-                this.yeild = [0, 0, 3, 0];
+                this.yield = [0, 0, 3, 0];
                 this.flavorText = 'An additional farm, build to quadruple Corn production';
                 this.icon = 'F+';
                 this.time = 10 * this.d;
@@ -475,7 +495,7 @@ class Building {
                 break;
             case 'wood cutter':
                 this.cost = [5 * this.d, 10 * this.d, 5 * this.d, 20 * this.d];
-                this.yeild = [0, 1, 0, 0];
+                this.yield = [0, 1, 0, 0];
                 this.flavorText = 'A wood cutter, build to produce Lumber';
                 this.icon = 'W';
                 this.time = 5 * this.d;
@@ -483,7 +503,7 @@ class Building {
                 break;
             case 'wood cutter +':
                 this.cost = [20 * this.d, 40 * this.d, 20 * this.d, 80 * this.d];
-                this.yeild = [0, 3, 0, 0];
+                this.yield = [0, 3, 0, 0];
                 this.flavorText = 'An additional wood cutter, build to quadruple Lumber production';
                 this.icon = 'W+';
                 this.time = 10 * this.d;
@@ -491,7 +511,7 @@ class Building {
                 break;
             case 'castle lv. 1':
                 this.cost = [0 * this.d, 0 * this.d, 0 * this.d, 0 * this.d];
-                this.yeild = [1, 1, 1, 1];
+                this.yield = [1, 1, 1, 1];
                 this.flavorText = 'A level 1 castle. Achieve level 3 to win';
                 this.icon = 'C1';
                 this.time = 0 * this.d;
@@ -499,7 +519,7 @@ class Building {
                 break;
             case 'castle lv. 2':
                 this.cost = [150 * this.d, 150 * this.d, 150 * this.d, 150 * this.d];
-                this.yeild = [1, 1, 1, 1];
+                this.yield = [1, 1, 1, 1];
                 this.flavorText = 'A level 2 castle. Achieve level 3 to win';
                 this.icon = 'C2';
                 this.time = 20 * this.d;
@@ -507,7 +527,7 @@ class Building {
                 break;
             case 'castle lv. 3':
                 this.cost = [300 * this.d, 300 * this.d, 300 * this.d, 300 * this.d];
-                this.yeild = [3, 3, 3, 3];
+                this.yield = [3, 3, 3, 3];
                 this.flavorText = 'A level 3 castle. If this is built you win!';
                 this.icon = 'C3';
                 this.time = 30 * this.d;
@@ -515,7 +535,7 @@ class Building {
                 break;
             default:
                 this.cost = [100, 100, 100, 100];
-                this.yeild = [0, 0, 0, 0];
+                this.yield = [0, 0, 0, 0];
                 this.flavorText = 'Unidentified';
                 this.icon = 'U';
                 this.time = 1000;
@@ -619,8 +639,8 @@ function updateResources(grid, resources) {
             var hex = grid[i];
             for (j = 0; j < hex.buildings.length; j++) {
                 for (k = 0; k < 4; k++) {
-                    resources[k] += hex.buildings[j].yeild[k];
-                    changeInRes[k] += hex.buildings[j].yeild[k];
+                    resources[k] += hex.buildings[j].yield[k];
+                    changeInRes[k] += hex.buildings[j].yield[k];
                     if (resources[k] > max) {
                         resources[k] = max;
                     }
@@ -645,12 +665,15 @@ function detectWin(grid) {
 }
 
 function finishGame(screen) {
-    clearInterval(interval);
+    gameOver = true;
     screen.ctx.fillStyle = '#505050';
     screen.ctx.fillRect(0, 0, screen.canvas.width, screen.canvas.height);
+    screen.ctx.fillStyle = '#404040';
+    screen.ctx.fillRect(270, 300, 540, 100);
     screen.ctx.fillStyle = '#ffffff';
     screen.ctx.font = '58px Ubuntu';
-    screen.ctx.fillText('You Won!', 430, 270);
+    screen.ctx.fillText('You Won!', 430, 150);
+    screen.ctx.fillText('New Game', 400, 370)
     var totalBuildings = 0,
         totalResources = changeInRes[0] + changeInRes[1] + changeInRes[2] + changeInRes[3],
         time = frame/60,
@@ -662,11 +685,13 @@ function finishGame(screen) {
         }
     }
 
-    score = Math.floor((totalBuildings * 1000) / (time * 10));
+    score = Math.floor((totalBuildings * 100) / (time));
 
-    screen.ctx.fillText('your score was: ' + score, 275, 350);
+    screen.ctx.fillText('your score was: ' + score, 275, 220);
 
 }
+
+
 
 var mouseDown = false;
 gameArea.canvas.addEventListener('mousedown', function(event) { 
@@ -675,6 +700,13 @@ gameArea.canvas.addEventListener('mousedown', function(event) {
         if ((event.offsetY > 490) && (event.offsetY < 530)) {
             findSelectedHex(gameGrid).startBuild(playerResources);
             hover = 1;
+        }
+    }
+    if (gameOver) {
+        if ((event.offsetX > 270) && (event.offsetX < 810)) {
+            if ((event.offsetY > 300) && (event.offsetY < 400)) {
+                reset = true;
+            }
         }
     }
 });
@@ -714,28 +746,41 @@ gameArea.canvas.addEventListener('touchmove', function(event) {
     event.preventDefault();
 });
 
-startGame();
-
-
-var centerX = (gameArea.canvas.width * (2 / 3)) / 2, 
-    centerY = gameArea.canvas.height / 2,
-    mouseX = null,
-    mouseY = null,
-    gridCenterX = centerX,
-    gridCenterY = centerY,
-    difficulty = 1,
-    hover = 0,
-    gameGrid = buildGrid(5, 5, 5, radius, offset);
+function newGame() {
+    frame = 0;
+    changeInRes = [0, 0, 0, 0];
+    playerResources = [30, 30, 30, 30];
+    centerX = (gameArea.canvas.width * (2 / 3)) / 2;
+    centerY = gameArea.canvas.height / 2;
+    mouseX = null;
+    mouseY = null;
+    gridCenterX = centerX;
+    gridCenterY = centerY;
+    difficulty = 1;
+    hover = 0;
+    gameGrid = buildGrid(mapSize, mapSize, mapSize, radius, offset);
+}
 
 function update() {
-    frame++;
-    gameArea.clear();
-    selectTile(gameGrid);
-    drawGrid(gameArea, gameGrid, offset, gridCenterX, gridCenterY);
-    drawCursor(gameArea);
-    drawSideboard(gameArea);
-    build(gameGrid);
-    updateResources(gameGrid, playerResources);
-    drawInfoScreen(mouseX, mouseY, gameArea);
-    detectWin(gameGrid);
+    if (!gameOver) {
+        frame++;
+        gameArea.clear();
+        selectTile(gameGrid);
+        drawGrid(gameArea, gameGrid, offset, gridCenterX, gridCenterY);
+        drawCursor(gameArea);
+        drawSideboard(gameArea);
+        build(gameGrid);
+        updateResources(gameGrid, playerResources);
+        drawInfoScreen(mouseX, mouseY, gameArea);
+        detectWin(gameGrid);
+    }
+    else {
+        if (reset) {
+            newGame();
+            gameOver = false;
+            reset = false;
+        }
+    }
 }
+
+startGame();
