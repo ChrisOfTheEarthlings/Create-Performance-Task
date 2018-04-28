@@ -1,3 +1,6 @@
+/* This is the canvas that the game runs off of - 
+code for this module was inspired in part by the 
+W3 gamemaking tutorial */
 var gameArea = {
     canvas : document.createElement("canvas"),
     start : function() {
@@ -9,34 +12,37 @@ var gameArea = {
     clear : function() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
-}
-
-var frame = 0, 
-    radius = 50,
-    offset = 5;
-    icons = [new Image(), new Image(), new Image(), new Image()];
+};
+/* The global variables initialized called here */
+var frame, //Frame will measure the time that has passed in-game in seconds when running
+    radius = 50, //The radius of the game's hexagons
+    offset = 5, //The border distance between hexagons
+    playerResources, //The player's resource pool
+    changeInRes, //The gross change in resources between beginning and end of the game game
+    interval, //The update interval that will work as the game's clock - provided by W3 gamemaking tutorial
+    centerX, //The X coordinate of the center of the canvas
+    centerY, //The Y coordinate of the center of the canvas
+    mouseX, //The current X position of the mouse
+    mouseY, //The current Y position of the mouse
+    gridCenterX, //The current center X coordinate of the game's grid
+    gridCenterY, //The current center Y coordinate of the game's grid
+    hover, //A boolean that detects when the player clicks the build button
+    gameGrid, //An array that contains the entire grid of hexagons
+    difficulty, //The number that determines how many resources that buildings require
+    mapSize, //The number of tiles that extend radially from each side of the central hexagons
+    gameOver, //A boolean that detects whether the game has finished
+    reset, //A boolean that triggers the game to be reset
+    icons = [new Image(), new Image(), new Image(), new Image()]; //Resource icons
 
 icons[0].src = 'assets/icons/people.png';
 icons[1].src = 'assets/icons/lumber.png';
 icons[2].src = 'assets/icons/corn.png';
 icons[3].src = 'assets/icons/iron.png';
 
-var playerResources,
-    changeInRes,
-    interval,
-    centerX, 
-    centerY,
-    mouseX,
-    mouseY,
-    gridCenterX,
-    gridCenterY,
-    hover,
-    gameGrid,
-    difficulty,
-    mapSize,
-    gameOver,
-    reset;
-
+/* Code to be run at the beginning of everything:
+establishes the canvas, ensures that the game won't
+be reset nor is in gameover state, establishes a game
+clock via interval, and creates a new game map */
 function startGame() {
     gameArea.start();
     reset = false;
@@ -47,19 +53,22 @@ function startGame() {
     newGame();
 }
 
-//x is right, y is left, z is down
+// Establishes the MapHex class of objects
 class MapHex {
     constructor(x, y, z, radius, offset, terrain, buildings) {
+        // Size and position values within the hex grid
         this.x = x;
         this.y = y;
         this.z = z;
         this.radius = radius;
         this.offset = offset;
 
+        // Abstracted size and position based off of pixel measurements
         this.borderRad = radius + offset*2;
         this.hexX = (x - y) * (Math.sqrt(3) / 2) * (radius + offset);
         this.hexY = (3/2) * z * (radius + offset);
 
+        // Building, building status and terrain information for the hexagon
         this.terrain = terrain || 'default';
         this.buildingState = 0;
         this.isBuilding = 0;
@@ -71,22 +80,25 @@ class MapHex {
     }
 }
 
+// Builds the building sequence for building a new building
 MapHex.prototype.startBuild = function(resources) {
     if (this.nextBuilding === 4) {
         this.nextBuilding = 3;
     }
+    // Check to see if a building is allowed to be built in this place
     if (compareArrays(playerResources, this.buildingOptions[this.nextBuilding].cost) && 
         (neighborsHaveBuildings(gameGrid, this)) && 
         (this.isBuilding !== 1)) {
 
-        this.isBuilding = 1;
-        for (i = 0; i < resources.length; i++) {
-            resources[i] -= this.buildingOptions[this.nextBuilding].cost[i];
+            // Set building mode to currently building and remove the cost of resources from the player's pool
+            this.isBuilding = 1;
+            for (i = 0; i < resources.length; i++) {
+                resources[i] -= this.buildingOptions[this.nextBuilding].cost[i];
         }
     }
 }
 
-
+// Populates a list of mapHex objects in a grid
 function buildGrid(xSize, ySize, zSize, radius, offset) {
     var grid = [];
     for (var x = 1 - xSize; x < xSize; x++) {
@@ -94,6 +106,8 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
             for (var z = 1 - zSize; z < zSize; z++) {
                 if (x + y + z === 0) {
                     var randomNum = Math.random();
+
+                    // Assign the hexagon a terrain type
                     if (randomNum < .4) {
                         grid.push(new MapHex(x, y, z, radius, offset, 'water'));
                     }
@@ -113,18 +127,25 @@ function buildGrid(xSize, ySize, zSize, radius, offset) {
             }
         }
     }
+    
+    // Choose a random hexagon from the grid and make it the 'castle' tile
     var random = findRandomHex(grid),
         copy = grid[random];
-    console.log(random)
+    console.log(random);
     grid[random] = new MapHex(copy.x, copy.y, copy.z, radius, offset, 'castle', [new Building('castle lv. 1')]);
 
+    // Center the map on the new 'castle' tile
     gridCenterX += grid[random].hexX;
     gridCenterY += grid[random].hexY;
     console.log(grid);
     return grid;
 }
 
+/* Draws a hexagon on the screen given the coordinates of the center of the tile map 
+and the hexagon to be drawn */
 function drawHexagon(zeroX, zeroY, hex, screen, border) {
+
+    // Convert to the pixel grid from coordinates
     var hexX = zeroX - hex.hexX,
         hexY = zeroY - hex.hexY;
     if (border) {
@@ -147,7 +168,33 @@ function drawHexagon(zeroX, zeroY, hex, screen, border) {
 
 }
 
+// Determines a hexagon's color based on its terrain type
+function chooseColor(hex) {
+    switch (hex.terrain) {
+        case 'mountain': 
+            return '#505058';
+            break;
+        case 'cornfield': 
+            return '#808008';
+            break;
+        case 'forest': 
+            return '#306018';
+            break;
+        case 'grassland': 
+            return '#608038';
+            break;
+        case 'castle': 
+            return '#906060';
+            break;
+        default: 
+            return '#000000';
+            break;
+    }
+}
+
+// Draws the grid of hexagons based on the center coordinates of the tile map
 function drawGrid(screen, grid, offset, zeroX, zeroY) {
+    // cHex stands for current hexagon
     for (cHex = 0; cHex < grid.length; cHex++) {
         
         var hex = grid[cHex];
@@ -157,35 +204,18 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
 
             drawHexagon(zeroX, zeroY, hex, gameArea, true);
     
-            switch (hex.terrain) {
-                case 'mountain': 
-                    screen.ctx.fillStyle = '#505058';
-                    break;
-                case 'cornfield': 
-                    screen.ctx.fillStyle = '#808008';
-                    break;
-                case 'forest': 
-                    screen.ctx.fillStyle = '#306018';
-                    break;
-                case 'grassland': 
-                    screen.ctx.fillStyle = '#608038';
-                    break;
-                case 'castle': 
-                    screen.ctx.fillStyle = '#906060';
-                    break;
-                default: 
-                    screen.ctx.fillStyle = '#000000';
-                    break;
-            }
-    
+            // Chooses color based on hex terrain
+            screen.ctx.fillStyle = chooseColor(hex);
             drawHexagon(zeroX, zeroY, hex, gameArea, false);
         }
 
+        // Draw building labels
         if (hex.buildings.length > 0) {
             screen.ctx.fillStyle = '#ffffff';
             screen.ctx.fillText(hex.buildings[hex.buildings.length - 1].icon, zeroX - hex.hexX, zeroY - hex.hexY);
         }
 
+        // Draw building progress bar
         if (hex.isBuilding === 1) {
             screen.ctx.fillStyle = '#aaaaaa';
             screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50, 10);
@@ -193,6 +223,8 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
             screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50 * (hex.buildingState / 100), 10)
         }
 
+        // Draw selection indicator
+        // CONTRIBUTION - idea for the transparent white layer was given by Calvin McHenry
         if (hex.selected) {
             screen.ctx.fillStyle = '#ffffff25';
             drawHexagon(zeroX, zeroY, hex, gameArea, false);
@@ -200,12 +232,14 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
     }
 }
 
+// Draws the selection indicator
 function drawCursor(screen) {
     screen.ctx.fillStyle = '#000000';
     screen.ctx.fillRect(centerX - 2, centerY - 6, 4, 12);
     screen.ctx.fillRect(centerX - 6, centerY - 2, 12, 4);
 }
 
+// Draws a resource counter
 function drawResourceCounter(screen, resource, x, y, color, floor) {
     var color = color || '#802020',
         floorResources = [];
@@ -234,6 +268,7 @@ function drawResourceCounter(screen, resource, x, y, color, floor) {
     screen.ctx.fillText(': ' + floorResources[3], x + 250, y + 25);
 }
 
+// Draws the sideboard informational panel
 function drawSideboard(screen) {
     var leftEdge = gameArea.canvas.width * (2/3),
         hex = findSelectedHex(gameGrid);
@@ -259,56 +294,74 @@ function drawSideboard(screen) {
 
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 150, leftEdge/2 - 40, 100);
-    if (hex.terrain !== 'ocean') {        
+
+    // Draw display for building options of the hexagon
+
+    // Draw first building option
+    if (hex.terrain !== 'ocean') {
+
+        // Check to see if the building has been built
         if (hex.buildings.length >= 1) {
             drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#000000', true);
             screen.ctx.fillStyle = '#000000';
-            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
+
+        // Check to see if the player can't build
         else if (!compareArrays(playerResources, hex.buildingOptions[0].cost) 
             || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))
             || (hex.isBuilding === 1)) {
             drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#802020', true);
             screen.ctx.fillStyle = '#802020';
-            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
+
+        // Draw as white if the player can build
         else {
             drawResourceCounter(screen, hex.buildingOptions[0].cost, leftEdge + 32, 160, '#ffffff', true);
             screen.ctx.fillStyle = '#ffffff';
-            screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
         }
+        screen.ctx.fillText(hex.buildingOptions[0].type, leftEdge + 30, 230);
     }
 
+    // Draw second building option
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 260, leftEdge/2 - 40, 100);
     if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
+
+        // Check to see if the building has been built
         if (hex.buildings.length >= 2) {
             drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#000000', true);
             screen.ctx.fillStyle = '#000000';
-            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
+
+        // Check to see if the player can't build
         else if ((!compareArrays(playerResources, hex.buildingOptions[1].cost)) || (hex.buildings.length < 1) 
             || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))
             || (hex.isBuilding === 1)) {
             drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#802020', true);
             screen.ctx.fillStyle = '#802020';
-            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
+
+        // Draw as white if the player can build
         else {
             drawResourceCounter(screen, hex.buildingOptions[1].cost, leftEdge + 32, 270, '#ffffff', true);
             screen.ctx.fillStyle = '#ffffff';
-            screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
         }
+        screen.ctx.fillText(hex.buildingOptions[1].type, leftEdge + 30, 340);
     }
 
+    // Draw third building option
     screen.ctx.fillStyle = '#404040';
     screen.ctx.fillRect(leftEdge + 20, 370, leftEdge/2 - 40, 100);
     if ((hex.terrain !== 'water') && (hex.terrain !== 'ocean')) {
+
+        // Check to see if the building has been built
         if (hex.buildings.length >= 3) {
             drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#000000', true);
             screen.ctx.fillStyle = '#000000';
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
         }
+
+        // Check to see if the player can't build
         else if ((!compareArrays(playerResources, hex.buildingOptions[2].cost)) || (hex.buildings.length < 2) 
             || (!neighborsHaveBuildings(gameGrid, findSelectedHex(gameGrid)))
             || (hex.isBuilding === 1)) {
@@ -316,6 +369,8 @@ function drawSideboard(screen) {
             screen.ctx.fillStyle = '#802020';
             screen.ctx.fillText(hex.buildingOptions[2].type, leftEdge + 30, 450);
         }
+
+        // Draw as white if the player can build
         else {
             drawResourceCounter(screen, hex.buildingOptions[2].cost, leftEdge + 32, 380, '#ffffff', true);
             screen.ctx.fillStyle = '#ffffff';
@@ -323,7 +378,7 @@ function drawSideboard(screen) {
         }
     }
 
-    //draw 'build' button
+    // Draw 'build' button
     screen.ctx.fillStyle = '#505050';
     if (hover) {
         screen.ctx.fillStyle = '#606060';
@@ -335,8 +390,10 @@ function drawSideboard(screen) {
     screen.ctx.fillText('build', leftEdge + 151, 520);
 }
 
+// Draws information about each building that is avalible
 function drawInfoScreen(mouseX, mouseY, screen) {
     var hex = findSelectedHex(gameGrid),
+    // bOps stands for Building Options
         bOps = [
             [740, 150, 1060, 250], 
             [740, 260, 1060, 360], 
@@ -344,7 +401,10 @@ function drawInfoScreen(mouseX, mouseY, screen) {
         ],
         bLength = bOps.length;
         
+        // Check to see if the mouse is over a building option
     for (c = 0; c < bLength; c++) {
+
+        // Draw the info screen
         if ((mouseX > bOps[c][0]) && (mouseX < bOps[c][2]) && (mouseY > bOps[c][1]) && (mouseY < bOps[c][3])) {
 
             screen.ctx.fillStyle = '#303030';
@@ -367,10 +427,7 @@ function drawInfoScreen(mouseX, mouseY, screen) {
     }
 }
 
-function drawStartScreen() {
-
-}
-
+// Find which hexagon is selected currently
 function findSelectedHex(grid) {
     for (i = 0; i < grid.length; i++) {
         if (grid[i].selected === true) {
@@ -380,11 +437,13 @@ function findSelectedHex(grid) {
     return new MapHex('none', '', '', null, null, 'ocean', 0);
 }
 
+// Randomly selects a hexagon
 function findRandomHex(grid) {
     //returns array index value of tile
     return Math.floor(Math.random() * grid.length);
 }
 
+// Checks for ajacent buildings
 function neighborsHaveBuildings(grid, hex) {
     var directions = [[1, -1, 0], [1, 0, -1], [0, 1, -1], [0, -1, 1] [-1, 0, 1], [-1, 1, 0]];
     for (i = 0; i < grid.length; i++) {
@@ -403,6 +462,8 @@ function neighborsHaveBuildings(grid, hex) {
     return false;
 }
 
+// Selects tile based on pixel coordinates
+// CONTRIBUTION - red blob games hexagon geometry tutorial
 function selectTile(grid) {
     var pixX = gridCenterX - centerX, pixY = gridCenterY - centerY, q, r, x, y, z;
     
@@ -423,11 +484,13 @@ function selectTile(grid) {
     }
 }
 
+// Create a building class
 class Building {
     constructor(type) {
         this.type = type || 'generic';
         this.d = difficulty;
 
+        // Determine building information based on given type
         switch (type) {
             case 'road': 
                 this.cost = [5 * this.d, 5 * this.d, 5 * this.d, 5 * this.d];
@@ -544,6 +607,7 @@ class Building {
     }
 }
 
+// Compares arrays and returns true if the first array is larger than the second
 function compareArrays (first, second){
     var n = 0;
     for (i = 0; i < first.length; i++) {
@@ -557,6 +621,7 @@ function compareArrays (first, second){
     return false;
 }
 
+// Returns the building options for a given terrain type
 function getBuildingOptions(terrain) {
     var options = [];
 
@@ -596,6 +661,7 @@ function getBuildingOptions(terrain) {
     return options;
 }
 
+// Determines the number of buildings for a tile
 function numberOfBuildings(grid) {
     var buildingNumber = 0;
     for (i = 0; i < grid.length; i++) {
@@ -605,6 +671,7 @@ function numberOfBuildings(grid) {
     return buildingNumber;
 }
 
+// Gives a maximum number of resources possible based off of buildings
 function maxResources(numBuildings) {
     var maxResources = 20;
     maxResources += Math.floor(numBuildings * 10);
@@ -614,14 +681,19 @@ function maxResources(numBuildings) {
     return maxResources;
 }
 
+// Build function for all hexagons
 function build(grid) {
     for (i = 0; i < grid.length; i++) {
+        
+        // Ticks percentage up
         if (grid[i].isBuilding === 1) {
             if (grid[i].buildingState < 100) {
                 if ((frame / (grid[i].buildingOptions[grid[i].nextBuilding].time * .6))%1 === 0) {
                     grid[i].buildingState++;
                 }
             }
+
+            // Resets building state
             else {
                 grid[i].buildingState = 0;
                 grid[i].buildings.push(grid[i].buildingOptions[grid[i].nextBuilding]);
@@ -632,12 +704,17 @@ function build(grid) {
     }
 }
 
+// Updates resource counts
 function updateResources(grid, resources) {
     var max = maxResources(numberOfBuildings(gameGrid));
+    // Checks for if the current time is an interval of seconds
     if ((frame / 60) % 1 === 0) {
+        // Iterate through hexagons
         for (i = 0; i < grid.length; i++) {
             var hex = grid[i];
+            // Iterate through buildings
             for (j = 0; j < hex.buildings.length; j++) {
+                // Iterate through resource types
                 for (k = 0; k < 4; k++) {
                     resources[k] += hex.buildings[j].yield[k];
                     changeInRes[k] += hex.buildings[j].yield[k];
@@ -650,6 +727,7 @@ function updateResources(grid, resources) {
     }
 }
 
+// Return true if the player has won
 function detectWin(grid) {
     var length = grid.length;
     for (d = 0; d < length; d++) {
@@ -663,7 +741,7 @@ function detectWin(grid) {
     }
     return false;
 }
-
+// Draws a game over screen
 function finishGame(screen) {
     gameOver = true;
     screen.ctx.fillStyle = '#505050';
@@ -679,12 +757,17 @@ function finishGame(screen) {
         time = frame/60,
         score;
 
+    // Iterate through all hexagons
     for (p = 0; p < gameGrid.length; p++) {
+        // Iterate through each building of the hexagon
         for (q = 0; q < gameGrid[p].buildings.length; q++) {
             totalBuildings += gameGrid[p].buildings[q].points;
         }
     }
 
+    // Calculate and draw final score
+    /* Final score is calculated by multiplying the total points from
+    buildings by 100 and dividing by the time in seconds */
     score = Math.floor((totalBuildings * 100) / (time));
 
     screen.ctx.fillText('your score was: ' + score, 275, 220);
@@ -692,9 +775,11 @@ function finishGame(screen) {
 }
 
 
+// USER INPUT
 
 var mouseDown = false;
-gameArea.canvas.addEventListener('mousedown', function(event) { 
+// Check for clicks
+gameArea.canvas.addEventListener('mousedown', function(event) {
     mouseDown = true;
     if ((event.offsetX > 720 + 60) && (event.offsetX < 1080 - 60)) {
         if ((event.offsetY > 490) && (event.offsetY < 530)) {
@@ -711,8 +796,10 @@ gameArea.canvas.addEventListener('mousedown', function(event) {
     }
 });
 
+// Sets mousedown to false when the mouse comes up
 window.addEventListener('mouseup', function(event) { mouseDown = false; });
 
+// Moves game area if the mouse moves while the mouse is clicked
 gameArea.canvas.addEventListener('mousemove', function(event) {
     var changeX = event.movementX,
         changeY = event.movementY;
@@ -726,6 +813,8 @@ gameArea.canvas.addEventListener('mousemove', function(event) {
     mouseY = event.offsetY;
 });
 
+// Touch input system
+
 var touchX, touchY;
 gameArea.canvas.addEventListener('touchstart', function(event) {
     var first = event.changedTouches[0]
@@ -733,6 +822,7 @@ gameArea.canvas.addEventListener('touchstart', function(event) {
     touchY = parseInt(first.clientY);
 });
 
+// When finger is dragged, move the grid
 gameArea.canvas.addEventListener('touchmove', function(event) {
     var first = event.changedTouches[0],
         changeX = parseInt(first.clientX) - touchX,
@@ -746,6 +836,7 @@ gameArea.canvas.addEventListener('touchmove', function(event) {
     event.preventDefault();
 });
 
+// Sets up the variables for a new game
 function newGame() {
     frame = 0;
     changeInRes = [0, 0, 0, 0];
@@ -761,6 +852,7 @@ function newGame() {
     gameGrid = buildGrid(mapSize, mapSize, mapSize, radius, offset);
 }
 
+// Runs an update every 60th of a second
 function update() {
     if (!gameOver) {
         frame++;
