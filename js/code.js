@@ -192,6 +192,15 @@ function chooseColor(hex) {
     }
 }
 
+function drawHexProgressBar(screen, hex, zeroX, zeroY) {
+    if (hex.isBuilding === 1) {
+        screen.ctx.fillStyle = '#aaaaaa';
+        screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50, 10);
+        screen.ctx.fillStyle = '#dddddd';
+        screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50 * (hex.buildingState / 100), 10)
+    }
+}
+
 // Draws the grid of hexagons based on the center coordinates of the tile map
 function drawGrid(screen, grid, offset, zeroX, zeroY) {
     // cHex stands for current hexagon
@@ -216,12 +225,7 @@ function drawGrid(screen, grid, offset, zeroX, zeroY) {
         }
 
         // Draw building progress bar
-        if (hex.isBuilding === 1) {
-            screen.ctx.fillStyle = '#aaaaaa';
-            screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50, 10);
-            screen.ctx.fillStyle = '#dddddd';
-            screen.ctx.fillRect(zeroX - hex.hexX - 25, zeroY - hex.hexY + 10, 50 * (hex.buildingState / 100), 10)
-        }
+        drawHexProgressBar(screen, hex, zeroX, zeroY);
 
         // Draw selection indicator
         // CONTRIBUTION - idea for the transparent white layer was given by Calvin McHenry
